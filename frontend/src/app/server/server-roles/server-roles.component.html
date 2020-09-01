@@ -1,0 +1,58 @@
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<clr-datagrid [clrDgLoading]="isLoading">
+  <clr-dg-placeholder>{{ 'NO_ROLES_FOUND' | translate }}</clr-dg-placeholder>
+  <clr-dg-footer>
+    <clr-dg-pagination #pagination [clrDgPageSize]="10">
+      <clr-dg-page-size [clrPageSizeOptions]="[10,20,50,100]">{{ 'ROLES_PER_PAGE' | translate }}</clr-dg-page-size>
+      {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}}
+      {{ 'OF_DATAGRID' | translate }} {{pagination.totalItems}} {{ 'ROLES_OF_DATAGRID' | translate }}
+    </clr-dg-pagination>
+  </clr-dg-footer>
+
+  <clr-dg-column [clrDgField]="'id'">{{ 'ROLE_ID' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'name'">{{ 'NAME' | translate }}</clr-dg-column>
+
+  <clr-dg-row *clrDgItems="let role of roles; index as i">
+    <clr-dg-action-overflow>
+      <button class="action-item">{{ 'MEMBERS' | translate }}</button>
+      <button class="action-item">{{ 'EDIT' | translate }}</button>
+      <button class="action-item" (click)="openModal(deleteRoleModal, role)">{{ 'DELETE' | translate }}</button>
+    </clr-dg-action-overflow>
+    <clr-dg-cell>{{role.roleId}}</clr-dg-cell>
+    <clr-dg-cell>{{role.name}}</clr-dg-cell>
+  </clr-dg-row>
+</clr-datagrid>
+<clr-modal #deleteRoleModal>
+  <h3 class="modal-title">{{ 'DELETE_ROLE_FROM_GUILD' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #banForm="ngForm">
+      <p [innerHTML]="'DELETE_ROLE_CONFIRMATION' | translate:role"></p>
+      <clr-input-container *ngIf="!model.noReason">
+        <label>{{ 'REASON' | translate }}</label>
+        <input clrInput placeholder="{{ 'REASON_OF_REMOVAL' | translate }}" name="input" [required]="!model.noReason" [(ngModel)]="model.reason" />
+      </clr-input-container>
+      <clr-checkbox-container>
+        <clr-checkbox-wrapper>
+          <input type="checkbox" clrCheckbox name="noReason" [(ngModel)]="model.noReason" />
+          <label>{{ 'DELETE_WITHOUT_PROVIDING_REASON' | translate }}</label>
+        </clr-checkbox-wrapper>
+        <clr-checkbox-wrapper *ngIf="model.notify && !model.noReason">
+          <input type="checkbox" clrCheckbox name="includeReason" [(ngModel)]="model.includeReason" />
+          <label>{{ 'INCLUDE_REASON' | translate }}</label>
+        </clr-checkbox-wrapper>
+      </clr-checkbox-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="deleteRoleModal.close(); banForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger" [disabled]="!banForm.valid" (click)="deleteRole(deleteRoleModal, role.roleId, index)">{{ 'DELETE' | translate }}</button>
+  </div>
+</clr-modal>

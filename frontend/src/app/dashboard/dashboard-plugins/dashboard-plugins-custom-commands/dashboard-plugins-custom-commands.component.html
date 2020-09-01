@@ -1,0 +1,380 @@
+<ng-container *ngIf="isLoading">
+  <div class="page-center">
+    <span class="spinner">
+      {{ 'LOADING' | translate }}
+    </span>
+  </div>
+</ng-container>
+<ng-container *ngIf="!isLoading">
+  <div class="clr-col-md-12">
+    <ng-container *ngFor="let alert of alerts; index as i">
+      <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+        <clr-alert-item>
+        <span class="alert-text">
+          {{ alert.message | translate }}
+        </span>
+        </clr-alert-item>
+      </clr-alert>
+    </ng-container>
+    <div class="clr-row clr-align-text-top">
+      <div class="clr-col">
+        <h2 style="margin-top: 0;">{{ 'CUSTOM_COMMANDS' | translate }}</h2>
+      </div>
+      <div class="clr-col text-right">
+        <button class="btn {{this.commandsPlugin.isEnabled ? 'btn-danger' : 'btn-success'}}" (click)="triggerCustomCommandsPluginState()"
+                [clrLoading]="btnState">
+          {{ (this.commandsPlugin.isEnabled ? 'DISABLE' : 'ENABLE') | translate }}
+        </button>
+      </div>
+    </div>
+    <hr>
+    <h5>{{ 'CREATE_COMMAND' | translate }}</h5>
+    <!-- TODO: Open these command crafting UIs in modals -->
+    <div class="clr-row">
+      <div class="clr-col-md-4">
+        <div class="card clickable" (click)="handlePrepareAddCommand('simple'); isNewCommandModalOpen = true">
+          <div class="card-block">
+            <div class="card-title">
+              {{ 'ADD_COMMAND' | translate }}
+            </div>
+            <div class="card-text">
+              {{ 'ADD_COMMAND_DESCRIPTION' | translate }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="clr-col-md-4">
+        <div class="card clickable" (click)="isOpen = true">
+          <div class="card-block">
+            <div class="card-title">
+              {{ 'AUTO_ROLE' | translate }}
+            </div>
+            <div class="card-text">
+              {{ 'AUTO_ROLE_DESCRIPTION' | translate }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="clr-col-md-4">
+        <div class="card clickable" (click)="isNewAdvancedCommandModalOpen = true">
+          <div class="card-block">
+            <div class="card-title">
+              {{ 'ADVANCED' | translate }}
+            </div>
+            <div class="card-text">
+              {{ 'ADVANCED_DESCRIPTION' | translate }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h5>{{ 'COMMANDS' | translate }}</h5>
+    <div class="card" *ngFor="let command of commandsPlugin.commands; index as i">
+      <div class="card-block">
+        <div class="card-title">
+          <div class="clr-row clr-justify-content-around">
+            <div class="clr-col">
+              {{command.prefix}}{{command.commandCall}}
+              <br *ngIf="command.description !== null">
+              <small>{{command.description}}</small>
+            </div>
+            <div class="clr-col clr-align-self-center">
+              <div class="clr-row clr-justify-content-end clr-flex-lg-middle">
+                <button class="btn btn-danger-outline btn-sm" (click)="onDelete(i)">{{ 'DELETE' | translate }}</button>
+                <button class="btn btn-secondary btn-sm" (click)="prepareEditCommand(i); isEditCommandModalOpen = true">{{ 'EDIT' | translate }}</button>
+                <input type="checkbox" name="isEnabled" [(ngModel)]="command.isEnabled" clrToggle (click)="onToggle(i, 'simple')" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card" *ngFor="let command of commandsPlugin.advancedCommands; index as i">
+      <div class="card-block">
+        <div class="card-title">
+          <div class="clr-row clr-justify-content-around">
+            <div class="clr-col">
+              {{command.prefix}}{{command.commandCall}}
+              <br *ngIf="command.description !== null">
+              <small>{{command.description}}</small>
+            </div>
+            <div class="clr-col clr-align-self-center">
+              <div class="clr-row clr-justify-content-end clr-flex-lg-middle">
+                <button class="btn btn-danger-outline btn-sm" (click)="onDeleteAdvancedCommand(i)">{{ 'DELETE' | translate }}</button>
+                <button class="btn btn-secondary btn-sm" (click)="prepareEditAdvancedCommand(i); isEditAdvancedCommandModalOpen = true">
+                  {{ 'EDIT' | translate }}
+                </button>
+                <input type="checkbox" name="isEnabled" [(ngModel)]="command.isEnabled" clrToggle (click)="onToggle(i, 'advanced')" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ng-container *ngIf="commandsPlugin.commands.length < 1">
+      <div>
+        <p>{{ 'NO_COMMANDS' | translate }}</p>
+      </div>
+    </ng-container>
+  </div>
+</ng-container>
+<clr-modal [(clrModalOpen)]="isNewCommandModalOpen" [clrModalSize]="'lg'" (close)="handleUndoNewCommand()">
+  <h3 class="modal-title">{{ 'NEW_COMMAND' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #newCommandForm="ngForm">
+      <clr-toggle-container>
+        <clr-toggle-wrapper>
+          <input type="checkbox" clrToggle [(ngModel)]="commandModel.isEnabled" name="isEnabled" />
+          <label>{{ (commandModel.isEnabled ? "ENABLED" : "DISABLED") | translate }}</label>
+        </clr-toggle-wrapper>
+      </clr-toggle-container>
+
+      <clr-input-container>
+        <label>{{ 'COMMAND_NAME' | translate }}</label>
+        <input clrInput placeholder="{{ 'COMMAND_NAME' | translate }}" name="commandCall" minLength="2" (keydown)="eventHandler($event)" [(ngModel)]="commandModel.commandCall" required />
+      </clr-input-container>
+
+      <!--
+      TODO: Ability to add more responses
+      -->
+      <clr-textarea-container>
+        <label>{{ 'BOT_RESPONSE' | translate }}</label>
+        <textarea placeholder="{{ 'BOT_RESPONSE' | translate }}" clrTextarea [(ngModel)]="commandModel.response" name="response" required></textarea>
+      </clr-textarea-container>
+
+      <clr-input-container>
+        <label>{{ 'COMMAND_DESCRIPTION' | translate }}</label>
+        <input clrInput placeholder="{{ 'COMMAND_DESCRIPTION' | translate }}" name="description" [(ngModel)]="commandModel.description" />
+      </clr-input-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline"
+            (click)="handleUndoNewCommand(); newCommandForm.reset(); isNewCommandModalOpen = false">
+      {{ 'CANCEL' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary" (click)="addCustomCommand()"
+            [disabled]="newCommandForm.invalid || !newCommandForm.dirty" [clrLoading]="modalBtnState">
+      {{ 'ADD_COMMAND' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isEditCommandModalOpen" [clrModalSize]="'lg'" (close)="handleUndoEditCommand()">
+  <h3 class="modal-title">{{ 'EDIT_COMMAND' | translate }}</h3>
+  <div class="modal-body">
+    <form #editCommandForm="ngForm" clrForm>
+      <clr-toggle-container>
+        <clr-toggle-wrapper>
+          <input type="checkbox" clrToggle [(ngModel)]="newCommand.isEnabled" name="isEnabled" />
+          <label>{{ (newCommand.isEnabled ? "ENABLED" : "DISABLED") | translate }}</label>
+        </clr-toggle-wrapper>
+      </clr-toggle-container>
+
+      <clr-input-container>
+        <label>{{ 'COMMAND_NAME' | translate }}</label>
+        <input clrInput placeholder="{{ 'COMMAND_NAME' | translate }}" name="commandCall" minLength="2" (keydown)="eventHandler($event)" [(ngModel)]="newCommand.commandCall" required />
+      </clr-input-container>
+
+      <!--
+      TODO: Ability to add more responses
+      -->
+      <clr-textarea-container>
+        <label>{{ 'BOT_RESPONSE' | translate }}</label>
+        <textarea placeholder="{{ 'BOT_RESPONSE' | translate }}" clrTextarea [(ngModel)]="newCommand.response" name="response" required></textarea>
+      </clr-textarea-container>
+
+      <clr-input-container>
+        <label>{{ 'COMMAND_DESCRIPTION' | translate }}</label>
+        <input clrInput placeholder="{{ 'COMMAND_DESCRIPTION' | translate }}" name="description" [(ngModel)]="newCommand.description" />
+      </clr-input-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="handleUndoEditCommand(); isEditCommandModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="handleEditCommand()"
+            [clrLoading]="modalBtnState" [disabled]="editCommandForm.invalid || !editCommandForm.dirty">{{ 'EDIT_COMMAND' | translate }}</button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isNewAdvancedCommandModalOpen" [clrModalSize]="'xl'" (close)="handleUndoNewAdvancedCommand()">
+  <h3 class="modal-title">{{ 'NEW_ADVANCED_COMMAND' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #newAdvancedCommandForm="ngForm">
+      <button class="btn btn-primary-outline btn-sm" (click)="handleAddAdvancedCommand(); handlePrepareAddCommand('advanced')">
+        {{ 'ADD_NEW_COMMAND' | translate }}
+      </button>
+      <br *ngIf="advancedCommands.length > 0">
+      <ng-container *ngFor="let command of advancedCommands; index as i">
+        <clr-accordion *ngIf="advancedCommands.length > 0">
+          <clr-accordion-panel>
+            <clr-accordion-title>
+              {{ command.commandCall ? command.commandCall : 'NEW_ADVANCED_COMMAND' | translate }}
+            </clr-accordion-title>
+            <clr-accordion-content>
+              <button class="btn btn-primary-outline btn-sm" (click)="handleAddAdvancedCommandAction(i)">
+                {{ 'ADD_ACTION' | translate }}
+              </button>
+              <button class="btn btn-outline-danger btn-sm" (click)="handleRemoveNewAdvancedCommand(i)">
+                {{ 'REMOVE' | translate }}
+              </button>
+              <clr-toggle-container>
+                <clr-toggle-wrapper>
+                  <input type="checkbox" clrToggle [(ngModel)]="command.isEnabled" name="{{i}}-isEnabled" />
+                  <label>{{ (command.isEnabled ? "ENABLED" : "DISABLED") | translate }}</label>
+                </clr-toggle-wrapper>
+              </clr-toggle-container>
+              <clr-input-container>
+                <label>{{ 'COMMAND_NAME' | translate }}</label>
+                <input clrInput placeholder="{{ 'COMMAND_NAME' | translate }}" name="{{i}}-commandCall" minLength="2"
+                       (keydown)="eventHandler($event)" [(ngModel)]="command.commandCall" required />
+              </clr-input-container>
+              <clr-input-container>
+                <label>{{ 'COMMAND_DESCRIPTION' | translate }}</label>
+                <input clrInput placeholder="{{ 'COMMAND_DESCRIPTION' | translate }}" name="{{i}}-description" [(ngModel)]="command.description" />
+              </clr-input-container>
+              <ng-container *ngFor="let action of command.actions; index as j">
+                <clr-accordion>
+                  <clr-accordion-panel>
+                    <clr-accordion-title>
+                      {{ 'NEW_ACTION' | translate }}
+                    </clr-accordion-title>
+                    <clr-accordion-content>
+                      <button class="btn btn-outline-danger btn-sm" (click)="handleDeleteAdvancedCommandAction(i, j)">
+                        {{ 'REMOVE' | translate }}
+                      </button>
+                      <clr-select-container>
+                        <label>
+                          {{ 'TYPE' | translate }}
+                        </label>
+                        <select clrSelect name="{{i}}-{{j}}-actionType" [(ngModel)]="action.type" required>
+                          <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+                          <option value="0" [ngValue]="0" [selected]="action.type === 0">{{ 'ADD_ROLE' | translate }}</option>
+                          <option value="1" [ngValue]="1" [selected]="action.type === 1">{{ 'REMOVE_ROLE' | translate }}</option>
+                          <option value="2" [ngValue]="2" [selected]="action.type === 2">{{ 'SEND_MESSAGE' | translate }}</option>
+                        </select>
+                      </clr-select-container>
+                      <clr-select-container *ngIf="action.type === 0 || action.type === 1">
+                        <label>
+                          <ng-container *ngIf="action.type === 1">
+                            {{ 'ROLE_TO_REMOVE' | translate }}
+                          </ng-container>
+                          <ng-container *ngIf="action.type === 0">
+                            {{ 'ROLE_TO_ADD' | translate }}
+                          </ng-container>
+                        </label>
+                        <select clrSelect name="{{i}}-{{j}}-roleId" id="role" [(ngModel)]="action.roleId" required *ngIf="!isNewAdvancedCommandLoading">
+                          <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+                          <option *ngFor="let role of roles" [ngValue]="role.roleId">{{role.name}}</option>
+                        </select>
+                      </clr-select-container>
+                      <clr-textarea-container *ngIf="action.type === 2">
+                        <label>{{ 'BOT_RESPONSE' | translate }}</label>
+                        <textarea placeholder="{{ 'BOT_RESPONSE' | translate }}" clrTextarea [(ngModel)]="action.message" name="{{i}}-{{j}}-response" required></textarea>
+                      </clr-textarea-container>
+                    </clr-accordion-content>
+                  </clr-accordion-panel>
+                </clr-accordion>
+              </ng-container>
+            </clr-accordion-content>
+          </clr-accordion-panel>
+        </clr-accordion>
+      </ng-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline"
+            (click)="handleUndoNewAdvancedCommand(); newAdvancedCommandForm.reset(); isNewAdvancedCommandModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="addCustomAdvancedCommand()"
+            [disabled]="newAdvancedCommandForm.invalid || !newAdvancedCommandForm.dirty" [clrLoading]="modalBtnState">
+      {{ 'ADD_COMMAND' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isEditAdvancedCommandModalOpen" [clrModalSize]="'xl'" (close)="handleUndoNewAdvancedCommand()">
+  <h3 class="modal-title">{{ 'EDIT_ADVANCED_COMMAND' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #editAdvancedCommandForm="ngForm">
+      <clr-accordion>
+        <clr-accordion-panel [clrAccordionPanelOpen]="true">
+          <clr-accordion-title>{{ advancedCommandModel.commandCall ? advancedCommandModel.commandCall : 'ADVANCED_COMMAND' | translate }}</clr-accordion-title>
+          <clr-accordion-content>
+            <button class="btn btn-primary-outline btn-sm" (click)="advancedCommandModel.actions.push({type: null})">{{ 'ADD_ACTION' | translate }}</button>
+            <clr-toggle-container>
+              <clr-toggle-wrapper>
+                <input type="checkbox" clrToggle [(ngModel)]="advancedCommandModel.isEnabled" name="isEnabled" />
+                <label>{{ (advancedCommandModel.isEnabled ? "ENABLED" : "DISABLED") | translate }}</label>
+              </clr-toggle-wrapper>
+            </clr-toggle-container>
+            <clr-input-container>
+              <label>{{ 'COMMAND_NAME' | translate }}</label>
+              <input clrInput placeholder="{{ 'COMMAND_NAME' | translate }}" name="commandCall" minLength="2"
+                     (keydown)="eventHandler($event)" [(ngModel)]="advancedCommandModel.commandCall" required />
+            </clr-input-container>
+            <clr-input-container>
+              <label>{{ 'COMMAND_DESCRIPTION' | translate }}</label>
+              <input clrInput placeholder="{{ 'COMMAND_DESCRIPTION' | translate }}" name="description" [(ngModel)]="advancedCommandModel.description" />
+            </clr-input-container>
+            <ng-container *ngFor="let action of advancedCommandModel.actions; index as j">
+              <clr-accordion>
+                <clr-accordion-panel [clrAccordionPanelOpen]="true">
+                  <clr-accordion-title>
+                    {{ 'NEW_ACTION' | translate }}
+                  </clr-accordion-title>
+                  <clr-accordion-content>
+                    <button class="btn btn-outline-danger btn-sm" (click)="handleDeleteAdvancedCommandActionEditModal(j)">
+                      {{ 'REMOVE' | translate }}
+                    </button>
+                    <clr-select-container>
+                      <label>
+                        {{ 'TYPE' | translate }}
+                      </label>
+                      <select clrSelect name="{{j}}-actionType-2" [(ngModel)]="action.type">
+                        <option value="0">{{ 'ADD_ROLE' | translate }}</option>
+                        <option value="1">{{ 'REMOVE_ROLE' | translate }}</option>
+                        <option value="2">{{ 'SEND_MESSAGE' | translate }}</option>
+                      </select>
+                    </clr-select-container>
+                    <clr-select-container *ngIf="action.type === 0 || action.type === 1">
+                      <label>
+                        <ng-container *ngIf="action.type === 1">
+                          {{ 'ROLE_TO_REMOVE' | translate }}
+                        </ng-container>
+                        <ng-container *ngIf="action.type === 0">
+                          {{ 'ROLE_TO_ADD' | translate }}
+                        </ng-container>
+                      </label>
+                      <select clrSelect name="{{j}}-roleId-2" [(ngModel)]="action.roleId" *ngIf="!isNewAdvancedCommandLoading">
+                        <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+                        <option *ngFor="let role of roles" [ngValue]="role.roleId">{{role.name}}</option>
+                      </select>
+                    </clr-select-container>
+                    <clr-textarea-container *ngIf="action.type === 2">
+                      <label>{{ 'BOT_RESPONSE' | translate }}</label>
+                      <textarea placeholder="{{ 'BOT_RESPONSE' | translate }}" clrTextarea [(ngModel)]="action.message" name="{{j}}-response-2" required></textarea>
+                    </clr-textarea-container>
+                  </clr-accordion-content>
+                </clr-accordion-panel>
+              </clr-accordion>
+            </ng-container>
+          </clr-accordion-content>
+        </clr-accordion-panel>
+      </clr-accordion>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline"
+            (click)="handleUndoEditAdvancedCommand(); editAdvancedCommandForm.reset(); isEditAdvancedCommandModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="handleEditAdvancedCommand()"
+            [disabled]="editAdvancedCommandForm.invalid || !editAdvancedCommandForm.dirty" [clrLoading]="modalBtnState">
+      {{ 'EDIT_COMMAND' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isOpen">
+  <h3 class="modal-title">{{ 'ERROR' | translate }}</h3>
+  <div class="modal-body">
+    <p>{{ 'NOT_IMPLEMENTED' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="isOpen = false">Ok</button>
+  </div>
+</clr-modal>

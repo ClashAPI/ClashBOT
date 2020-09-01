@@ -1,0 +1,31 @@
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<ng-container *ngIf="isLoading || isLoadingPlugins">
+  <span class="spinner page-center">
+    {{ 'LOADING' | translate }}
+  </span>
+</ng-container>
+<ng-container *ngIf="!isLoading && !isLoadingPlugins">
+  <div class="clr-row">
+    <div class="clr-col-md-6">
+      <iframe [src]="getDiscordGuildWidget() | safe: 'resourceUrl'" width="350" height="500"
+              allowtransparency="true" frameborder="0"
+              sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+    </div>
+    <div class="clr-col-md-6">
+      <div class="clr-col-md-6">
+        <h4>Selected guild: {{guild.name}}</h4>
+        <p>Custom commands plugin: {{ customCommandsPlugin.isEnabled ? 'Enabled' : 'Disabled' }}</p>
+        <p>Moderation plugin: {{ autoModPlugin.isEnabled ? 'Enabled' : 'Disabled' }}</p>
+        <p>Guild members: {{ guild.members.length }}</p>
+      </div>
+    </div>
+  </div>
+</ng-container>

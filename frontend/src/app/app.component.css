@@ -1,0 +1,13 @@
+.main-container {
+}
+.content-container {
+  background-color: #1b2a32;
+  min-height: max-content !important;
+}
+.content-area {
+  max-width: 1440px !important;
+  margin: 0 auto !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  max-height: max-content !important;
+}

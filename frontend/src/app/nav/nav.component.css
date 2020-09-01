@@ -1,0 +1,22 @@
+.header, header {
+  display: flex;
+}
+
+.myvm-global-header {
+  display: flex;
+}
+
+.myvm-global-header .myvm-container {
+  display: flex;
+  margin: 0 auto;
+  position: relative;
+  width: 100%;
+}
+
+.myvm-global-header .myvm-container {
+  max-width: 1440px;
+}
+
+.subnav {
+  box-shadow: 0 -.05rem 0 #495865 inset !important;
+}

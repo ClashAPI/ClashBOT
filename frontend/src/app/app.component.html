@@ -1,0 +1,10 @@
+<clr-main-container id="container">
+  <app-nav *ngIf="showNav"></app-nav>
+  <div class="main-container">
+    <div class="content-container">
+      <div class="content-area">
+        <router-outlet (activate)="checkGuild()"></router-outlet>
+      </div>
+    </div>
+  </div>
+</clr-main-container>

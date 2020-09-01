@@ -1,0 +1,152 @@
+<span class="spinner page-center" *ngIf="isLoading">
+  {{ 'LOADING' | translate }}
+</span>
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+      <span class="alert-text">
+        {{ alert.message | translate }}
+      </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<ng-container>
+  <div class="clr-row clr-justify-content-center" *ngIf="!isLoading">
+    <div class="clr-col-md-12">
+      <button class="btn btn-sm" (click)="isOpen = true" [clrLoading]="managersBtnState">
+        {{ 'GUILD_MANAGERS' | translate }}
+      </button>
+      <form clrForm #editGuildForm="ngForm" (ngSubmit)="updateGuild()">
+        <clr-input-container>
+          <label>
+            {{ 'GUILD_NAME' | translate }}
+          </label>
+          <input clrInput placeholder="Name of the Discord guild" name="name" [(ngModel)]="guild.name" />
+        </clr-input-container>
+        <clr-select-container>
+          <label for="regions">
+            {{ 'REGION' | translate }}
+          </label>
+          <select clrSelect name="regions" id="regions" [(ngModel)]="guild.region">
+            <option *ngFor="let region of regions" [value]="region.id">
+              {{region.name}}
+            </option>
+          </select>
+        </clr-select-container>
+        <clr-select-container>
+          <label for="verification_level">
+            {{ 'GUILD_VERIFICATION_LEVEL' | translate }}
+          </label>
+          <select clrSelect name="verification_level" id="verification_level" [(ngModel)]="guild.verification_level">
+            <option value="0" [selected]="guild.verification_level === 0">{{ 'GUILD_VERIFICATION_LEVEL_0' | translate }}</option>
+            <option value="1" [selected]="guild.verification_level === 1">{{ 'GUILD_VERIFICATION_LEVEL_1' | translate }}</option>
+            <option value="2" [selected]="guild.verification_level === 2">{{ 'GUILD_VERIFICATION_LEVEL_2' | translate }}</option>
+            <option value="3" [selected]="guild.verification_level === 3">{{ 'GUILD_VERIFICATION_LEVEL_3' | translate }}</option>
+            <option value="4" [selected]="guild.verification_level === 4">{{ 'GUILD_VERIFICATION_LEVEL_4' | translate }}</option>
+          </select>
+        </clr-select-container>
+        <clr-select-container>
+          <label for="explicit_content_filter">
+            {{ 'GUILD_CONTENT_FILTER' | translate }}
+          </label>
+          <select clrSelect name="explicit_content_filter" id="explicit_content_filter" [(ngModel)]="guild.explicit_content_filter">
+            <option value="0" [selected]="guild.explicit_content_filter === 0">{{ 'GUILD_CONTENT_FILTER_LEVEL_0' | translate }}</option>
+            <option value="1" [selected]="guild.explicit_content_filter === 1">{{ 'GUILD_CONTENT_FILTER_LEVEL_1' | translate }}</option>
+            <option value="2" [selected]="guild.explicit_content_filter === 2">{{ 'GUILD_CONTENT_FILTER_LEVEL_2' | translate }}</option>
+          </select>
+        </clr-select-container>
+        <clr-select-container>
+          <label for="default_message_notifications">
+            {{ 'GUILD_DEFAULT_MESSAGE_NOTIFICATIONS' | translate }}
+          </label>
+          <select clrSelect name="default_message_notifications" id="default_message_notifications" [(ngModel)]="guild.default_message_notifications">
+            <option value="0" [selected]="guild.default_message_notifications === 0">{{ 'GUILD_DEFAULT_MESSAGE_NOTIFICATIONS_LEVEL_0' | translate }}</option>
+            <option value="1" [selected]="guild.default_message_notifications === 1">{{ 'GUILD_DEFAULT_MESSAGE_NOTIFICATIONS_LEVEL_1' | translate }}</option>
+          </select>
+        </clr-select-container>
+        <br>
+        <button type="submit" class="btn btn-primary" [clrLoading]="btnState" [disabled]="editGuildForm.invalid || !isDbGuildInitialized">
+          {{ 'SAVE' | translate }}
+        </button>
+      </form>
+    </div>
+  </div>
+</ng-container>
+<clr-modal [(clrModalOpen)]="isOpen" clrModalSize="lg" *ngIf="!isLoadingCandidates">
+  <h3 class="modal-title">
+    {{ 'GUILD_MANAGERS' | translate }}
+  </h3>
+  <div class="modal-body">
+    <span class="spinner page-center" *ngIf="isLoading || isLoadingDbGuild">
+      {{ 'LOADING' | translate }}
+    </span>
+    <form clrForm #managersForm="ngForm">
+      <clr-tabs *ngIf="!isLoadingDbGuild && !isLoading && isDbGuildInitialized">
+        <clr-tab>
+          <button clrTabLink>{{ 'MANAGERS' | translate }}</button>
+          <clr-tab-content *clrIfActive="true">
+            <clr-datagrid [(clrDgSelected)]="selectedUsersToRemove">
+              <clr-dg-action-bar>
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm btn-danger-outline" [disabled]="selectedUsersToRemove.length < 1" (click)="handleRemoveFromManagers()">
+                    {{ 'REMOVE_FROM_MANAGERS' | translate }}
+                  </button>
+                </div>
+              </clr-dg-action-bar>
+
+              <clr-dg-column>{{ 'USERNAME' | translate }}</clr-dg-column>
+              <clr-dg-column>{{ 'DISCRIMINATOR' | translate }}</clr-dg-column>
+
+              <clr-dg-placeholder>{{ 'NO_MANAGERS_FOUND' | translate }}</clr-dg-placeholder>
+
+              <clr-dg-row *ngFor="let manager of dbGuild.managers" [clrDgItem]="manager">m
+                <clr-dg-cell>{{manager.userName}}</clr-dg-cell>
+                <clr-dg-cell>{{manager.discriminator}}</clr-dg-cell>
+              </clr-dg-row>
+
+              <clr-dg-footer>{{dbGuild.managers.length}} {{ 'MANAGERS_DATAGRID' | translate }}</clr-dg-footer>
+            </clr-datagrid>
+          </clr-tab-content>
+        </clr-tab>
+        <clr-tab>
+          <button clrTabLink (click)="getManagerCandidates()">{{ 'ADD_MANAGER' | translate }}</button>
+          <clr-tab-content *clrIfActive>
+            <span class="spinner page-center" *ngIf="isLoadingCandidates">
+                {{ 'LOADING' | translate }}
+            </span>
+            <clr-datagrid [(clrDgSelected)]="selectedUsersToAdd" *ngIf="!isLoadingCandidates">
+              <clr-dg-action-bar>
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm btn-secondary" [disabled]="selectedUsersToAdd.length < 1" (click)="handleAddToManagers()">
+                    {{ 'ADD_TO_MANAGERS' | translate }}
+                  </button>
+                </div>
+              </clr-dg-action-bar>
+
+              <clr-dg-column>{{ 'USERNAME' | translate }}</clr-dg-column>
+              <clr-dg-column>{{ 'DISCRIMINATOR' | translate }}</clr-dg-column>
+
+              <clr-dg-placeholder>{{ 'NO_MANAGER_CANDIDATES_FOUND' | translate }}</clr-dg-placeholder>
+
+              <clr-dg-row *clrDgItems="let candidate of managerCandidates" [clrDgItem]="candidate">
+                <clr-dg-cell>{{candidate.username}}</clr-dg-cell>
+                <clr-dg-cell>{{candidate.discriminator}}</clr-dg-cell>
+              </clr-dg-row>
+
+              <clr-dg-footer>{{managerCandidates.length}} {{ 'POTENTIAL_MANAGERS_DATAGRID' | translate }}</clr-dg-footer>
+            </clr-datagrid>
+          </clr-tab-content>
+        </clr-tab>
+      </clr-tabs>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isOpen = false">
+      {{ 'CANCEL' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary" (click)="handleSubmitManagers(); isOpen = false"
+            [clrLoading]="btnState" [disabled]="managersForm.invalid">
+      {{ 'SAVE' | translate }}
+    </button>
+  </div>
+</clr-modal>

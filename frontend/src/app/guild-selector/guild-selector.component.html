@@ -1,0 +1,73 @@
+<div class="clr-row clr-justify-content-center">
+  <div class="clr-col-md-12">
+    <ng-container *ngIf="isLoading">
+      <span class="spinner page-center">
+        {{ 'LOADING' | translate }}
+      </span>
+    </ng-container>
+    <ng-container *ngIf="!isLoading">
+      <ng-container *ngFor="let alert of alerts; index as i">
+        <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+          <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+          </clr-alert-item>
+        </clr-alert>
+      </ng-container>
+      <br *ngIf="alerts.length > 0">
+      <clr-tabs>
+        <clr-tab>
+          <button clrTabLink>{{ 'MY_GUILDS' | translate }}</button>
+          <clr-tab-content *clrIfActive="true">
+            <div class="clr-col-md-12" style="padding-bottom: 100px">
+              <br>
+              <div class="clr-row clr-flex-items-xs-between" *ngFor="let guild of this.guilds">
+                <ng-container *ngIf="guild.owner === true">
+                  <label class="clr-align-middle">
+                    {{guild.name}}
+                  </label>
+                  <button class="btn" [class]="guild.isAvailable ? 'btn-success' : 'btn-primary'"
+                          (click)="guild.isAvailable ? handleGuildSwitch(guild.id, guild.name) : addToGuild()">
+                    {{ (guild.isAvailable ? 'SELECT' : 'ADD') | translate }}
+                  </button>
+                </ng-container>
+              </div>
+            </div>
+          </clr-tab-content>
+        </clr-tab>
+        <ng-container *ngIf="managedGuilds.length > 0">
+          <clr-tab>
+            <button clrTabLink>{{ 'MANAGED_GUILDS' | translate }}</button>
+            <clr-tab-content *clrIfActive>
+              <div class="clr-col-md-12" style="padding-bottom: 100px">
+                <br>
+                <div class="clr-row alert alert-warning" role="alert">
+                  <div class="alert-items">
+                    <div class="alert-item static">
+                      <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                      </div>
+                      <span class="alert-text">
+                      {{ 'MANAGER_WARNING' | translate }}
+                    </span>
+                    </div>
+                  </div>
+                </div>
+                <br>
+                <div class="clr-row clr-flex-items-xs-between" *ngFor="let guild of this.managedGuilds">
+                  <label class="clr-align-middle">
+                    {{guild.guildId}}
+                  </label>
+                  <button class="btn btn-success" (click)="handleGuildSwitch(guild.guildId, guild.name)">
+                    {{ 'SELECT' | translate }}
+                  </button>
+                </div>
+              </div>
+            </clr-tab-content>
+          </clr-tab>
+        </ng-container>
+      </clr-tabs>
+    </ng-container>
+  </div>
+</div>

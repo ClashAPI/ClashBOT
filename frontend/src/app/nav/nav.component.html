@@ -1,0 +1,123 @@
+<!--
+<div class="alert alert-app-level alert-warning" role="alert">
+  <div class="alert-items">
+    <div class="alert-item static">
+      <div class="alert-icon-wrapper">
+        <clr-icon class="alert-icon" shape="exclamation-triangle"></clr-icon>
+      </div>
+      <div class="alert-text">
+        You are using your administrator token to perform administrative actions. Drop it if you do not need it anymore.
+      </div>
+      <div class="alert-actions">
+        <button class="btn alert-action">Drop</button>
+      </div>
+    </div>
+  </div>
+</div>
+-->
+<header class="header-1 myvm-global-header">
+  <div class="myvm-container">
+    <div class="branding">
+      <a [routerLink]="['/']" class="nav-link">
+        <clr-icon shape="atom"></clr-icon>
+        <span class="title">ClashAPI Bot</span>
+      </a>
+    </div>
+    <clr-header>
+      <div class="header-nav" [clr-nav-level]="1">
+        <a #dashboard class="nav-link nav-text" [routerLink]="['/dashboard']" routerLinkActive="active">{{ 'DASHBOARD' | translate }}</a>
+        <a #server class="nav-link nav-text" [routerLink]="['/server']" routerLinkActive="active">{{ 'SERVER' | translate }}</a>
+        <a #administration class="nav-link nav-text"
+           [routerLink]="['/admin']" routerLinkActive="active" [hidden]="authService.decodedToken.is_superuser !== 'True'">{{ 'ADMINISTRATION' | translate }}</a>
+      </div>
+    </clr-header>
+    <div class="header-actions">
+      <clr-dropdown>
+        <button class="nav-text" clrDropdownTrigger>
+          {{guildName ? guildName : 'NA'}}
+          <clr-icon shape="caret down"></clr-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <a [routerLink]="['/select-guild']" clrDropdownItem>{{ 'SWITCH_GUILD' | translate }}</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
+      <clr-dropdown>
+        <button class="nav-text" clrDropdownTrigger aria-label="open user profile">
+          {{authService.decodedToken?.unique_name}}#{{authService.decodedToken?.discord_member_discriminator}}
+          <clr-icon shape="caret down"></clr-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <a clrDropdownItem (click)="isLangChangeModalOpen=true">{{ 'PREFERENCES' | translate }}</a>
+          <a style="color: #f55047;" clrDropdownItem (click)="logout()">{{ 'LOG_OUT' | translate }}</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
+    </div>
+  </div>
+</header>
+<nav class="subnav myvm-global-header"
+     *ngIf="dashboard.classList.contains('active') || server.classList.contains('active') || administration.classList.contains('active')"
+     [clr-nav-level]="2">
+  <ul class="nav myvm-container">
+    <ng-container *ngIf="dashboard.classList.contains('active')">
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/dashboard/dashboard']" routerLinkActive="active">{{ 'DASHBOARD' | translate }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/dashboard/plugins']" routerLinkActive="active">{{ 'PLUGINS' | translate }}</a>
+      </li>
+    </ng-container>
+    <ng-container *ngIf="server.classList.contains('active')">
+      <li class="nav-item">
+        <a class="nav-link active" [routerLink]="['/server/guild']" routerLinkActive="active">{{ 'MANAGE_GUILD' | translate }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/server/members']" routerLinkActive="active">{{ 'MANAGE_MEMBERS' | translate }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/server/roles']" routerLinkActive="active">{{ 'MANAGE_ROLES' | translate }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/server/channels']" routerLinkActive="active">{{ 'MANAGE_CHANNELS' | translate }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/server/log']" routerLinkActive="active">{{ 'LOG' | translate }}</a>
+      </li>
+    </ng-container>
+    <ng-container *ngIf="administration.classList.contains('active')">
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/admin/bot']" routerLinkActive="active">{{ 'MANAGE_BOT' | translate }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/admin/users']" routerLinkActive="active">{{ 'MANAGE_USERS' | translate }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/admin/log']" routerLinkActive="active">{{ 'LOG' | translate }}</a>
+      </li>
+    </ng-container>
+  </ul>
+</nav>
+<clr-modal [(clrModalOpen)]="isLangChangeModalOpen">
+  <h3 class="modal-title">{{ 'PREFERENCES' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #settingsForm="ngForm">
+      <div class="clr-row">
+        <div class="clr-col-md 12">
+          <clr-select-container>
+            <label for="language">{{ 'PREFERENCES_LANGUAGE' | translate }}</label>
+            <select #languageCode clrSelect name="language" id="language" required>
+              <option value="en" [selected]="currentLangCode === 'en'">{{ 'ENGLISH' | translate }}</option>
+              <option value="hu" [selected]="currentLangCode === 'hu'">{{ 'HUNGARIAN' | translate }}</option>
+            </select>
+          </clr-select-container>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isLangChangeModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="changeLanguage(languageCode.value)"
+            [disabled]="settingsForm.invalid">
+      Ok
+    </button>
+  </div>
+</clr-modal>

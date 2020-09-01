@@ -1,0 +1,617 @@
+<div class="clr-row clr-justify-content-center">
+  <div class="clr-col-md-12">
+    <ng-container *ngFor="let alert of alerts; index as i">
+      <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+        <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+        </clr-alert-item>
+      </clr-alert>
+    </ng-container>
+    <br *ngIf="alerts.length > 0">
+    <ng-container *ngIf="isLoading">
+      <div class="page-center">
+        <span class="spinner">
+          {{ 'LOADING' | translate }}
+        </span>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="!isLoading">
+      <div class="clr-row clr-align-text-top">
+        <div class="clr-col">
+          <h2 style="margin-top: 0;">{{ 'AUTO_MOD_PLUGIN' | translate }}</h2>
+        </div>
+        <div class="clr-col text-right">
+          <button class="btn {{this.autoModPlugin.isEnabled ? 'btn-danger' : 'btn-success'}}"
+                  (click)="triggerAutoModPluginState()" [clrLoading]="triggerBtnState">
+            {{ (this.autoModPlugin.isEnabled ? 'DISABLE' : 'ENABLE') | translate }}
+          </button>
+        </div>
+      </div>
+      <hr>
+      <div class="clr-row" *ngIf="isRolesLoading">
+        <div class="clr-col-md-12">
+          <clr-spinner clrInline>
+            {{ 'LOADING' | translate }}
+          </clr-spinner>
+          <span>
+            {{ 'LOADING' | translate }}
+          </span>
+        </div>
+      </div>
+      <div class="clr-row" *ngIf="!isRolesLoading">
+        <div class="clr-col-md-6">
+          <form #addModRoleForm style="margin: 0; padding: 0;">
+            <select #roleInput clrSelect name="role" [(ngModel)]="selectedRole" [formControl]="roleFormControl">
+              <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+              <option *ngFor="let role of rolesForModeratorRoles"
+                      [ngValue]="role.roleId">
+                {{ getModeratorRoleName(role.roleId) }}
+              </option>
+            </select>
+            <!--
+            <clr-datalist-container>
+              <input #roleInput clrDatalistInput placeholder="{{ 'ROLE_TO_ADD' | translate }}"
+                     name="role" (keydown.enter)="handleAddModRole(roleInput.value); addModRoleForm.reset()" />
+              <datalist #datalist>
+                <option *ngFor="let role of roles; index as i" [ngValue]="role.name">{{ getModeratorRoleName(role.roleId) }}</option>
+              </datalist>
+            </clr-datalist-container>
+            -->
+          </form>
+        </div>
+        <div class="clr-col-md-6 text-right">
+          <span *ngIf="autoModPlugin.moderatorRoles.length < 1">
+            {{ 'NO_MODERATOR_ROLES' | translate }}
+          </span>
+          <ng-container *ngIf="autoModPlugin.moderatorRoles.length > 0">
+            <span class="label" *ngFor="let role of autoModPlugin.moderatorRoles">
+              <clr-icon shape="times" style="cursor: pointer;" (click)="handleRemoveRole(role)"></clr-icon> {{ getModeratorRoleName(role.roleId) }}
+            </span>
+          </ng-container>
+        </div>
+      </div>
+      <br>
+      <ng-container>
+        <div class="clr-row">
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'BAD_WORDS' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" (click)="isModalOpen = true" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <clr-select-container>
+                    <select clrSelect name="bad-words-action" [(ngModel)]="autoModPlugin.badWordsSettings.moderationAction"
+                            (ngModelChange)="updateModPlugin()" required>
+                      <option value="0" [ngValue]="0" [selected]="autoModPlugin.badWordsSettings.moderationAction === 0">
+                        {{ 'DISABLED' | translate }}
+                      </option>
+                      <option value="1" [ngValue]="1" [selected]="autoModPlugin.badWordsSettings.moderationAction === 1">
+                        {{ 'DELETE_MESSAGE' | translate }}
+                      </option>
+                      <option value="2" [ngValue]="2" [selected]="autoModPlugin.badWordsSettings.moderationAction === 2">
+                        {{ 'WARN_MEMBER' | translate }}
+                      </option>
+                      <option value="3" [ngValue]="3" [selected]="autoModPlugin.badWordsSettings.moderationAction === 2">
+                        {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                      </option>
+                    </select>
+                  </clr-select-container>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'REPEATED_TEXT' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" (click)="isRepeatedTextSettingsModalOpen = true" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="repeated-text-action" [(ngModel)]="autoModPlugin.repeatedTextSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.repeatedTextSettings.moderationAction === 0">
+                      {{ 'DISABLED' | translate }}
+                    </option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.repeatedTextSettings.moderationAction === 1">
+                      {{ 'DELETE_MESSAGE' | translate }}
+                    </option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.repeatedTextSettings.moderationAction === 2">
+                      {{ 'WARN_MEMBER' | translate }}
+                    </option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.repeatedTextSettings.moderationAction === 2">
+                      {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'SERVER_INVITES' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="server-invites-action" [(ngModel)]="autoModPlugin.serverInvitesSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.serverInvitesSettings.moderationAction === 0">
+                      {{ 'DISABLED' | translate }}
+                    </option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.serverInvitesSettings.moderationAction === 1">
+                      {{ 'DELETE_MESSAGE' | translate }}
+                    </option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.serverInvitesSettings.moderationAction === 2">
+                      {{ 'WARN_MEMBER' | translate }}
+                    </option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.serverInvitesSettings.moderationAction === 2">
+                      {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="clr-row">
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'EXTERNAL_LINKS' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="external-links-action" [(ngModel)]="autoModPlugin.externalLinksSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.externalLinksSettings.moderationAction === 0">
+                      {{ 'DISABLED' | translate }}
+                    </option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.externalLinksSettings.moderationAction === 1">
+                      {{ 'DELETE_MESSAGE' | translate }}
+                    </option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.externalLinksSettings.moderationAction === 2">
+                      {{ 'WARN_MEMBER' | translate }}
+                    </option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.externalLinksSettings.moderationAction === 2">
+                      {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'EXCESSIVE_CAPS' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="excessive-caps-action" [(ngModel)]="autoModPlugin.excessiveCapsSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.excessiveCapsSettings.moderationAction === 0">
+                      {{ 'DISABLED' | translate }}
+                    </option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.excessiveCapsSettings.moderationAction === 1">
+                      {{ 'DELETE_MESSAGE' | translate }}</option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.excessiveCapsSettings.moderationAction === 2">
+                      {{ 'WARN_MEMBER' | translate }}
+                    </option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.excessiveCapsSettings.moderationAction === 2">
+                      {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'EXCESSIVE_EMOJIS' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="excessive-emojis-action" [(ngModel)]="autoModPlugin.excessiveEmojisSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.excessiveEmojisSettings.moderationAction === 0">
+                      {{ 'DISABLED' | translate }}
+                    </option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.excessiveEmojisSettings.moderationAction === 1">
+                      {{ 'DELETE_MESSAGE' | translate }}
+                    </option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.excessiveEmojisSettings.moderationAction === 2">
+                      {{ 'WARN_MEMBER' | translate }}
+                    </option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.excessiveEmojisSettings.moderationAction === 2">
+                      {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="clr-row">
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'EXCESSIVE_SPOILERS' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="excessive-spoilers-action" [(ngModel)]="autoModPlugin.excessiveSpoilersSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.excessiveSpoilersSettings.moderationAction === 0">
+                      {{ 'DISABLED' | translate }}
+                    </option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.excessiveSpoilersSettings.moderationAction === 1">
+                      {{ 'DELETE_MESSAGE' | translate }}
+                    </option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.excessiveSpoilersSettings.moderationAction === 2">
+                      {{ 'WARN_MEMBER' | translate }}
+                    </option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.excessiveSpoilersSettings.moderationAction === 2">
+                      {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'EXCESSIVE_MENTIONS' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="excessive-mentions-action" [(ngModel)]="autoModPlugin.excessiveMentionsSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.excessiveMentionsSettings.moderationAction === 0">
+                      {{ 'DISABLED' | translate }}
+                    </option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.excessiveMentionsSettings.moderationAction === 1">
+                      {{ 'DELETE_MESSAGE' | translate }}
+                    </option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.excessiveMentionsSettings.moderationAction === 2">
+                      {{ 'WARN_MEMBER' | translate }}
+                    </option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.excessiveMentionsSettings.moderationAction === 2">
+                      {{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="clr-col-md-4">
+            <div class="card">
+              <div class="card-block">
+                <div class="card-text">
+                  <div class="clr-row clr-justify-content-between">
+                    <strong style="margin-left: 0.6rem;">{{ 'ZALGO' | translate }}</strong>
+                    <div *ngIf="isRolesLoading || isChannelsLoading">
+                      <clr-spinner clrInline>
+                        {{ 'LOADING' | translate }}
+                      </clr-spinner>
+                      <span>
+                        {{ 'LOADING' | translate }}
+                      </span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" *ngIf="!isRolesLoading && !isChannelsLoading">
+                      {{ 'SETTINGS' | translate }}
+                    </button>
+                  </div>
+                  <select clrSelect name="zalgo-action" [(ngModel)]="autoModPlugin.zalgoSettings.moderationAction"
+                          (ngModelChange)="updateModPlugin()" required>
+                    <option value="0" [ngValue]="0" [selected]="autoModPlugin.zalgoSettings.moderationAction === 0">{{ 'DISABLED' | translate }}</option>
+                    <option value="1" [ngValue]="1" [selected]="autoModPlugin.zalgoSettings.moderationAction === 1">{{ 'DELETE_MESSAGE' | translate }}</option>
+                    <option value="2" [ngValue]="2" [selected]="autoModPlugin.zalgoSettings.moderationAction === 2">{{ 'WARN_MEMBER' | translate }}</option>
+                    <option value="3" [ngValue]="3" [selected]="autoModPlugin.zalgoSettings.moderationAction === 2">{{ 'DELETE_MESSAGE_AND_WARN_MEMBER' | translate }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!--
+      <h5>{{ 'BLACKLISTED_WORDS' | translate }}</h5>
+      <div class="clr-row">
+        <div class="clr-col-md-6">
+          <form #addWordForm style="margin: 0; padding: 0;">
+            <clr-input-container>
+              <input clrInput #wordInput placeholder="{{ 'WORD_TO_BLACKLIST' | translate }}" name="input"
+                     (keydown.enter)="handleAddWord(wordInput.value); addWordForm.reset()" />
+            </clr-input-container>
+          </form>
+        </div>
+
+        <div class="clr-col-md-6 text-right">
+          <span *ngIf="blacklistedWords.length < 1">
+            {{ 'NO_BLACKLISTED_WORDS' | translate }}
+          </span>
+          <ng-container *ngIf="blacklistedWords.length > 0">
+        <span class="label" *ngFor="let word of autoModPlugin.badWordsSettings.badWords">
+          <clr-icon shape="times" style="cursor: pointer;" (click)="handleDeleteWord(word)"></clr-icon> {{word}}
+        </span>
+          </ng-container>
+        </div>
+      </div>
+      !-->
+
+      <h5>{{ 'COMMANDS' | translate }}</h5>
+      <div class="clr-row">
+        <div class="clr-col-md-4" *ngFor="let modCommand of autoModPlugin.moderatorCommands; index as i">
+          <div class="card">
+            <div class="card-block">
+              <div class="card-title">
+                {{ modCommand.prefix }}{{ modCommand.commandCall }}
+              </div>
+              <div class="card-text">
+                <div class="clr-row">
+                  <div class="clr-col-10">
+                    {{ modCommand.description | translate }}
+                  </div>
+                  <div class="clr-col-2">
+                    <clr-toggle-wrapper>
+                      <input type="checkbox" name="modcommand-{{i}}" clrToggle [(ngModel)]="modCommand.isEnabled" (click)="triggerModCommandState(i)" />
+                    </clr-toggle-wrapper>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<clr-modal [(clrModalOpen)]="isModalOpen" *ngIf="!isLoading" clrModalSize="lg" #badWordsSettingsModal>
+  <h3 class="modal-title">{{ 'BAD_WORDS' | translate }}</h3>
+  <div class="modal-body">
+    <div class="bad-words-ignored-channels">
+      <div class="clr-row">
+        <div class="clr-col-md-6">
+          <form style="margin: 0; padding: 0;">
+            <clr-select-container class="plugin-settings-form-control">
+              <label>{{ 'IGNORED_CHANNELS' | translate }}</label>
+              <select clrSelect name="bad-words-ignored-channels"
+                      [formControl]="badWordsIgnoredChannelsFormControl">
+                <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+                <option *ngFor="let channel of channelsForBadWordsSettings" [ngValue]="channel.channelId">{{channel.name}}</option>
+              </select>
+            </clr-select-container>
+          </form>
+        </div>
+        <div class="clr-col-md-6">
+        <span *ngIf="autoModPlugin.badWordsSettings.ignoredChannels.length < 1">
+          {{ 'NO_IGNORED_CHANNELS' | translate }}
+        </span>
+          <ng-container *ngIf="autoModPlugin.badWordsSettings.ignoredChannels.length > 0">
+        <span class="label" *ngFor="let channel of badWordIgnoredChannels">
+          <clr-icon shape="times" style="cursor: pointer;"
+                    (click)="handleRemoveIgnoredChannel(autoModPlugin.badWordsSettings.ignoredChannels, channel)"></clr-icon> {{channel.name}}
+        </span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    <div id="bad-words-allowed-roles">
+      <div class="clr-row">
+        <div class="clr-col-md-6">
+          <form style="margin: 0; padding: 0;">
+            <clr-select-container class="plugin-settings-form-control">
+              <label>{{ 'ALLOWED_ROLES' | translate }}</label>
+              <select clrSelect name="bad-words-allowed-roles"
+                      [formControl]="badWordsAllowedRolesFormControl">
+                <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+                <option *ngFor="let role of rolesForBadWordsSettings" [ngValue]="role.roleId">{{role.name}}</option>
+              </select>
+            </clr-select-container>
+          </form>
+        </div>
+        <div class="clr-col-md-6">
+          <span *ngIf="autoModPlugin.badWordsSettings.allowedRoles.length < 1">
+            {{ 'NO_ALLOWED_ROLES' | translate }}
+          </span>
+          <ng-container *ngIf="autoModPlugin.badWordsSettings.allowedRoles.length > 0">
+            <span class="label" *ngFor="let role of badWordAllowedRoles">
+              <clr-icon shape="times" style="cursor: pointer;"
+                        (click)="handleRemoveAllowedRole(autoModPlugin.badWordsSettings.allowedRoles, role)"></clr-icon> {{role.name}}
+            </span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    <div id="bad-words">
+      <div class="clr-row">
+        <div class="clr-col-md-6">
+          <form #addBadWordForm style="margin: 0; padding: 0;">
+            <clr-input-container class="plugin-settings-form-control">
+              <label>{{ 'BAD_WORDS' | translate }}</label>
+              <input clrInput #badWordsBadWordInput placeholder="{{ 'WORD_TO_ADD' | translate }}" name="bad-words"
+                     (keydown.enter)="handleAddWord(badWordsBadWordInput.value); addBadWordForm.reset()" />
+            </clr-input-container>
+          </form>
+        </div>
+        <div class="clr-col-md-6">
+        <span *ngIf="autoModPlugin.badWordsSettings.badWords.length < 1">
+          {{ 'NO_BAD_WORDS' | translate }}
+        </span>
+          <ng-container *ngIf="autoModPlugin.badWordsSettings.badWords.length > 0">
+        <span class="label" *ngFor="let word of autoModPlugin.badWordsSettings.badWords">
+          <clr-icon shape="times" style="cursor: pointer;" (click)="handleDeleteWord(word)"></clr-icon> {{word.word}}
+        </span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="handleUpdateBadWordsSettings(badWordsSettingsModal);"
+            [clrLoading]="badWordsSettingsModalBtnState">
+      {{ 'SAVE' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isRepeatedTextSettingsModalOpen" *ngIf="!isLoading" clrModalSize="lg" #repeatedTextSettingsModal>
+  <h3 class="modal-title">{{ 'REPEATED_TEXT' | translate }}</h3>
+  <div class="modal-body">
+    <div class="repeated-text-ignored-channels">
+      <div class="clr-row">
+        <div class="clr-col-md-6">
+          <form style="margin: 0; padding: 0;">
+            <clr-select-container class="plugin-settings-form-control">
+              <label>{{ 'IGNORED_CHANNELS' | translate }}</label>
+              <select clrSelect name="repeated-text-ignored-channels"
+                      [formControl]="repeatedTextSettingsIgnoredChannelsFormControl">
+                <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+                <option *ngFor="let channel of channelsForRepeatedTextSettings" [ngValue]="channel.channelId">{{channel.name}}</option>
+              </select>
+            </clr-select-container>
+          </form>
+        </div>
+        <div class="clr-col-md-6">
+        <span *ngIf="autoModPlugin.repeatedTextSettings.ignoredChannels.length < 1">
+          {{ 'NO_IGNORED_CHANNELS' | translate }}
+        </span>
+          <ng-container *ngIf="autoModPlugin.repeatedTextSettings.ignoredChannels.length > 0">
+        <span class="label" *ngFor="let channel of repeatedTextIgnoredChannels">
+          <clr-icon shape="times" style="cursor: pointer;"
+                    (click)="handleRemoveIgnoredChannel(autoModPlugin.repeatedTextSettings.ignoredChannels, channel)"></clr-icon> {{channel.name}}
+        </span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    <div id="repeated-text-allowed-roles">
+      <div class="clr-row">
+        <div class="clr-col-md-6">
+          <form style="margin: 0; padding: 0;">
+            <clr-select-container class="plugin-settings-form-control">
+              <label>{{ 'ALLOWED_ROLES' | translate }}</label>
+              <select clrSelect name="repeated-text-allowed-roles"
+                      [formControl]="repeatedTextSettingsAllowedRolesFormControl">
+                <option value="undefined">{{ 'PLEASE_SELECT' | translate }}</option>
+                <option *ngFor="let role of rolesForRepeatedTextSettings" [ngValue]="role.roleId">{{role.name}}</option>
+              </select>
+            </clr-select-container>
+          </form>
+        </div>
+        <div class="clr-col-md-6">
+          <span *ngIf="autoModPlugin.repeatedTextSettings.allowedRoles.length < 1">
+            {{ 'NO_ALLOWED_ROLES' | translate }}
+          </span>
+          <ng-container *ngIf="autoModPlugin.repeatedTextSettings.allowedRoles.length > 0">
+            <span class="label" *ngFor="let role of repeatedTextAllowedRoles">
+              <clr-icon shape="times" style="cursor: pointer;"
+                        (click)="handleRemoveAllowedRole(autoModPlugin.repeatedTextSettings.allowedRoles, role)"></clr-icon> {{role.name}}
+            </span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isRepeatedTextSettingsModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="handleUpdateRepeatedTextSettings(repeatedTextSettingsModal);"
+            [clrLoading]="repeatedTextSettingsModalBtnState">
+      {{ 'SAVE' | translate }}
+    </button>
+  </div>
+</clr-modal>

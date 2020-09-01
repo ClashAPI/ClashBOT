@@ -1,0 +1,108 @@
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<ng-container *ngIf="isLoading">
+  <span class="spinner page-center">
+    {{ 'LOADING' | translate }}
+</span>
+</ng-container>
+<ng-container *ngIf="!isLoading">
+  <button class="btn btn-sm btn-outline-primary disabled">{{ 'PLUGIN_MARKETPLACE' | translate }}</button>
+  <div class="clr-row">
+    <div class="clr-col-md-4">
+      <div class="card clickable" [routerLink]="['commands']">
+        <div class="card-block">
+          <div class="progress top" [class]="customCommandsPlugin.isEnabled ? 'success' : 'danger'">
+            <progress value="100" max="100"></progress>
+          </div>
+          <div class="card-title">
+            {{ 'CUSTOM_COMMANDS' | translate }}
+            <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
+              <clr-icon shape="shield-check" class="is-solid is-success" size="18"></clr-icon>
+              <span class="tooltip-content">{{ 'OFFICIAL_PLUGIN' | translate }}</span>
+            </a>
+          </div>
+          <div class="card-text">
+            {{ 'CUSTOM_COMMANDS_PLUGIN_DESCRIPTION' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clr-col-md-4">
+      <div class="card clickable" [routerLink]="['moderation']">
+        <div class="card-block">
+          <div class="progress top" [class]="autoModPlugin.isEnabled ? 'success' : 'danger'">
+            <progress value="100" max="100"></progress>
+          </div>
+          <div class="card-title">
+            {{ 'MODERATION' | translate }}
+            <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
+              <clr-icon shape="shield-check" class="is-solid is-success" size="18"></clr-icon>
+              <span class="tooltip-content">{{ 'OFFICIAL_PLUGIN' | translate }}</span>
+            </a>
+          </div>
+          <div class="card-text">
+            {{ 'MODERATION_PLUGIN_DESCRIPTION' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clr-col-md-4">
+      <div class="card">
+        <div class="card-block">
+          <div class="card-title">
+            {{ 'TIMERS' | translate }}
+            <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
+              <clr-icon shape="shield-check" class="is-solid is-success" size="18"></clr-icon>
+              <span class="tooltip-content">{{ 'OFFICIAL_PLUGIN' | translate }}</span>
+            </a>
+          </div>
+          <div class="card-text">
+            {{ 'TIMERS_PLUGIN_DESCRIPTION' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clr-col-md-4">
+      <div class="card">
+        <div class="card-block">
+          <div class="card-title">
+            Twitch
+            <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
+              <clr-icon shape="shield-check" class="is-solid is-success" size="18"></clr-icon>
+              <span class="tooltip-content">{{ 'OFFICIAL_PLUGIN' | translate }}</span>
+            </a>
+          </div>
+          <div class="card-text">
+            {{ 'TWITCH_PLUGIN_DESCRIPTION' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clr-col-md-4">
+      <div class="card clickable" [routerLink]="['clashapi']">
+        <div class="card-block">
+          <div class="progress top" [class]="clashAPIPlugin.isEnabled ? 'success' : 'danger'">
+            <progress value="100" max="100"></progress>
+          </div>
+          <div class="card-title">
+            {{ 'CLASH_ROYALE_STATISTICS' | translate }}
+            <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
+              <clr-icon shape="shield-check" class="is-solid is-success" size="18"></clr-icon>
+              <span class="tooltip-content">{{ 'OFFICIAL_PLUGIN' | translate }}</span>
+            </a>
+          </div>
+          <div class="card-text">
+            {{ 'CLASH_ROYALE_PLUGIN_DESCRIPTION' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

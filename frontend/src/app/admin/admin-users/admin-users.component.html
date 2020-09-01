@@ -1,0 +1,104 @@
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<clr-datagrid [clrDgLoading]="isLoading">
+  <clr-dg-placeholder>{{ 'NO_USERS_FOUND' | translate }}</clr-dg-placeholder>
+  <clr-dg-footer>
+    <clr-dg-pagination #pagination [clrDgPageSize]="10">
+      <clr-dg-page-size [clrPageSizeOptions]="[10,20,50,100]">{{ 'USERS_PER_PAGE' | translate }}</clr-dg-page-size>
+      {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}}
+      {{ 'OF_DATAGRID' | translate }} {{pagination.totalItems}} {{ 'USERS_OF_DATAGRID' | translate }}
+    </clr-dg-pagination>
+  </clr-dg-footer>
+
+  <clr-dg-column [clrDgField]="'id'">ID</clr-dg-column>
+  <clr-dg-column [clrDgField]="'userName'">{{ 'USERNAME' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'discriminator'">{{ 'DISCRIMINATOR' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'created_at'">{{ 'CREATED_AT' | translate }}</clr-dg-column>
+
+  <clr-dg-row *clrDgItems="let user of users, index as i">
+    <clr-dg-action-overflow *ngIf="!checkSelf(user.id)">
+      <button class="action-item" [disabled]="" (click)="openModal(suspendUserModal, user)" *ngIf="!user.lockoutEnd">{{ 'SUSPEND' | translate }}</button>
+      <button class="action-item" [disabled]="" (click)="openModal(banUserModal, user)" *ngIf="!user.lockoutEnd">{{ 'BAN' | translate }}</button>
+      <button class="action-item" [disabled]="" (click)="openModal(enableUserModal, user)" *ngIf="user.lockoutEnd">{{ 'ENABLE' | translate }}</button>
+      <button class="action-item" [disabled]="" (click)="openModal(deleteUserModal, user); index = i">{{ 'DELETE' | translate }}</button>
+    </clr-dg-action-overflow>
+    <clr-dg-cell>{{user.id}}</clr-dg-cell>
+    <clr-dg-cell>{{user.userName}}
+      <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-md" *ngIf="user.isSuperuser">
+        <clr-icon shape="administrator" class="is-solid"></clr-icon>
+        <span class="tooltip-content">{{ 'SUPERUSER' | translate }}</span>
+      </a>
+      <span class="badge badge-danger tooltip tooltip-sm" aria-haspopup="true" role="tooltip" *ngIf="user.lockoutEnd > currentDate">
+        {{ 'SUSPENDED' | translate}}
+        <span class="tooltip-content">{{user.lockoutEnd | date}}</span>
+      </span>
+    </clr-dg-cell>
+    <clr-dg-cell>{{user.discriminator}}</clr-dg-cell>
+    <clr-dg-cell>{{user.createdAt | date}}</clr-dg-cell>
+  </clr-dg-row>
+</clr-datagrid>
+<clr-modal #banUserModal>
+  <h3 class="modal-title">{{ 'BAN_USER' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #banForm="ngForm">
+      <p [innerHTML]="'BAN_USER_CONFIRMATION' | translate:user"></p>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="banUserModal.close(); banForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger"
+            (click)="banUser(banUserModal, user.id); banForm.reset()" [clrLoading]="banUserBtnState">{{ 'BAN' | translate }}</button>
+  </div>
+</clr-modal>
+<clr-modal #deleteUserModal>
+  <h3 class="modal-title">{{ 'DELETE_USER' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #deleteForm="ngForm">
+      <p [innerHTML]="'DELETE_USER_CONFIRMATION' | translate:user"></p>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="deleteUserModal.close(); banForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger"
+            (click)="deleteUser(deleteUserModal, user.id, index); deleteForm.reset()" [clrLoading]="deleteUserBtnState">{{ 'DELETE' | translate }}</button>
+  </div>
+</clr-modal>
+<clr-modal #enableUserModal>
+  <h3 class="modal-title">{{ 'ENABLE_USER' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #enableForm="ngForm">
+      <p [innerHTML]="'ENABLE_USER_CONFIRMATION' | translate:user"></p>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="banUserModal.close(); banForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary"
+            (click)="enableUser(enableUserModal, user.id); enableForm.reset()" [clrLoading]="enableUserBtnState">{{ 'ENABLE' | translate }}</button>
+  </div>
+</clr-modal>
+<clr-modal #suspendUserModal>
+  <h3 class="modal-title">{{ 'SUSPEND_USER' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #suspendUserForm="ngForm">
+      <p [innerHTML]="'SUSPEND_USER_CONFIRMATION' | translate:user"></p>
+      <clr-date-container>
+        <label>{{ 'SUSPEND_UNTIL' | translate }}</label>
+        <input type="date" clrDate name="date" [(ngModel)]="suspendUntil" [min]="currentDate" required>
+      </clr-date-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="suspendUserModal.close(); suspendUserForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger" [clrLoading]="suspendUserBtnState" [disabled]="!suspendUserForm.valid || !suspendUserForm.dirty"
+            (click)="suspendUser(suspendUserModal, user.id, index); suspendUserForm.reset()">
+      {{ 'SUSPEND' | translate }}
+    </button>
+  </div>
+</clr-modal>

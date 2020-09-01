@@ -1,0 +1,10 @@
+<span class="spinner page-center" *ngIf="isLoading">
+    Loading...
+</span>
+<div class="clr-col-md-12" *ngIf="!isLoading">
+  <div class="clr-row">
+    <button class="btn btn-primary" (click)="connectBot()" [disabled]="isBotOnline">{{ 'CONNECT_BOT' | translate | uppercase}}</button>
+    <button class="btn btn-primary" (click)="disconnectBot()" [disabled]="!isBotOnline">{{ 'DISCONNECT_BOT' | translate | uppercase }}</button>
+    <button class="btn btn-primary" (click)="reconnectBot()" [disabled]="!isBotOnline">{{ 'RECONNECT_BOT' | translate | uppercase }}</button>
+  </div>
+</div>

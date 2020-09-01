@@ -1,0 +1,51 @@
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<button class="btn btn-danger-outline btn-sm" (click)="isOpen = true">{{ 'DELETE_LOGS' | translate }}</button>
+<clr-datagrid [clrDgLoading]="isLoading">
+  <clr-dg-placeholder>{{ 'NO_LOG_ENTRIES_FOUND' | translate }}</clr-dg-placeholder>
+  <clr-dg-footer>
+    <clr-dg-pagination #pagination [clrDgPageSize]="10">
+      <clr-dg-page-size [clrPageSizeOptions]="[10,20,50,100]">{{ 'LOG_ENTRIES_PER_PAGE' | translate }}</clr-dg-page-size>
+      {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}}
+      {{ 'OF_DATAGRID' | translate }} {{pagination.totalItems}} {{ 'LOG_ENTRIES_OF_DATAGRID' | translate }}
+    </clr-dg-pagination>
+  </clr-dg-footer>
+
+  <clr-dg-column [clrDgField]="'id'">ID</clr-dg-column>
+  <clr-dg-column [clrDgField]="'initiator'">{{ 'INITIATOR' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'actionName'">{{ 'ACTION' | translate }}</clr-dg-column>
+  <!--
+  <clr-dg-column [clrDgField]="'actionType'">Type</clr-dg-column>
+  -->
+  <clr-dg-column [clrDgField]="'date'">{{ 'DATE' | translate }}</clr-dg-column>
+
+  <clr-dg-row *clrDgItems="let entry of log, index as i">
+    <clr-dg-action-overflow>
+      <button class="action-item" (click)="deleteLogEntry(entry.id, i)">{{ 'DELETE' | translate }}</button>
+    </clr-dg-action-overflow>
+    <clr-dg-cell>{{entry.id}}</clr-dg-cell>
+    <clr-dg-cell>{{entry.initiator.userName}}#{{entry.initiator.discriminator}}</clr-dg-cell>
+    <clr-dg-cell>{{entry.actionName | translate}}</clr-dg-cell>
+    <!--
+    <clr-dg-cell>{{entry.actionType}}</clr-dg-cell>
+    -->
+    <clr-dg-cell>{{entry.date | date:'medium'}}</clr-dg-cell>
+  </clr-dg-row>
+</clr-datagrid>
+<clr-modal [(clrModalOpen)]="isOpen">
+  <h3 class="modal-title">{{ 'DELETE_LOG_ENTRIES' | translate }}</h3>
+  <div class="modal-body">
+    <p>{{ 'REMOVE_LOG_ENTRIES_CONFIRMATION' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="isOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger" (click)="deleteLogEntries(); isOpen = false" [clrLoading]="btnState">{{ 'DELETE_LOGS' | translate }}</button>
+  </div>
+</clr-modal>

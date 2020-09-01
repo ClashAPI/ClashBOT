@@ -1,0 +1,364 @@
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<button class="btn btn-sm" (click)="isBannedUsersModalOpen = true; getBans()">{{ 'BANNED_MEMBERS' | translate }}</button>
+<button class="btn btn-sm" (click)="isTempBannedUsersModalOpen = true; getTempBans()">{{ 'TEMP_BANNED_MEMBERS' | translate }}</button>
+<clr-datagrid [clrDgLoading]="isLoading">
+  <clr-dg-placeholder>{{ 'NO_MEMBERS_FOUND' | translate }}</clr-dg-placeholder>
+  <clr-dg-footer>
+    <clr-dg-pagination #pagination [clrDgPageSize]="10">
+      <clr-dg-page-size [clrPageSizeOptions]="[10,20,50,100]">{{ 'MEMBERS_PER_PAGE' | translate }}</clr-dg-page-size>
+      {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}}
+      {{ 'OF_DATAGRID' | translate }} {{pagination.totalItems}} {{ 'MEMBERS_OF_DATAGRID' | translate }}
+    </clr-dg-pagination>
+  </clr-dg-footer>
+
+  <clr-dg-column [clrDgField]="'id'">{{ 'MEMBER_ID' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'username'">{{ 'USERNAME' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'discriminator'">{{ 'DISCRIMINATOR' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'joined_at'">{{ 'JOIN_DATE' | translate }}</clr-dg-column>
+
+  <clr-dg-row *clrDgItems="let member of members, index as i" [clrDgItem]="member">
+    <clr-dg-action-overflow>
+      <button class="action-item" (click)="openModal(editMemberModal, member); model = member; rolesToDelete = []">{{ 'EDIT' | translate }}</button>
+      <button class="action-item" [disabled]="member.isOwner" (click)="openModal(kickMemberModal, member); index = i">{{ 'KICK' | translate }}</button>
+      <button class="action-item" [disabled]="member.isOwner" (click)="openModal(tempbanMemberModal, member); index = i">{{ 'TEMPORARY_BAN' | translate }}</button>
+      <button class="action-item" [disabled]="member.isOwner" (click)="openModal(banMemberModal, member); index = i">{{ 'BAN' | translate }}</button>
+    </clr-dg-action-overflow>
+    <clr-dg-cell>{{member.memberId}}</clr-dg-cell>
+    <clr-dg-cell><span [style.color]="rgbToHex(member.color)">{{member.username}} </span>
+        <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-sm" *ngIf="member.isOwner">
+          <clr-icon shape="crown" class="is-solid"
+                    style="color: #FFD700;"></clr-icon>
+          <span class="tooltip-content">{{ 'OWNER_BADGE' | translate }}</span>
+        </a>
+      <span class="badge badge-info" *ngIf="member.isBot">Bot</span>
+    </clr-dg-cell>
+    <clr-dg-cell>{{member.discriminator}}</clr-dg-cell>
+    <clr-dg-cell>{{member.joinedAt | date}}</clr-dg-cell>
+  </clr-dg-row>
+
+  <clr-dg-detail *clrIfDetail="let member; index as i">
+    <clr-dg-detail-header [style.color]="rgbToHex(member.color)">
+      {{member.username}}
+      <span class="label label-info" *ngIf="member.isOwner">{{ 'OWNER_BADGE' | translate}}</span>
+      <span class="label label-info" *ngIf="member.isBot">Bot</span>
+    </clr-dg-detail-header>
+    <clr-dg-detail-body>
+      <button class="btn btn-primary-outline btn-sm" (click)="openModal(editMemberModal, member);
+              model = member; rolesToDelete = []">
+        {{ 'EDIT' | translate }}
+      </button>
+      <button class="btn btn-danger-outline btn-sm" [disabled]="member.isOwner"
+              (click)="openModal(kickMemberModal, member); index = i">
+        {{ 'KICK' | translate }}
+      </button>
+      <button class="btn btn-danger-outline btn-sm" [disabled]="member.isOwner"
+              (click)="openModal(tempbanMemberModal, member); index = i">
+        {{ 'TEMPORARY_BAN' | translate }}
+      </button>
+      <button class="btn btn-danger-outline btn-sm" [disabled]="member.isOwner"
+              (click)="openModal(banMemberModal, member); index = i">
+        {{ 'BAN' | translate }}
+      </button>
+      <clr-datagrid>
+        <clr-dg-column>{{ 'PROPERTY_DATAGRID' | translate }}</clr-dg-column>
+        <clr-dg-column>{{ 'VALUE_DATAGRID' | translate }}</clr-dg-column>
+
+        <clr-dg-row>
+          <clr-dg-cell>{{ 'MEMBER_ID' | translate}}</clr-dg-cell>
+          <clr-dg-cell>{{member.memberId}}</clr-dg-cell>
+        </clr-dg-row>
+        <clr-dg-row>
+          <clr-dg-cell>{{ 'USERNAME' | translate }}</clr-dg-cell>
+          <clr-dg-cell>{{member.username}}</clr-dg-cell>
+        </clr-dg-row>
+        <clr-dg-row>
+          <clr-dg-cell>{{ 'DISCRIMINATOR' | translate }}</clr-dg-cell>
+          <clr-dg-cell>{{member.discriminator}}</clr-dg-cell>
+        </clr-dg-row>
+        <clr-dg-row>
+          <clr-dg-cell>{{ 'JOIN_DATE' | translate }}</clr-dg-cell>
+          <clr-dg-cell>{{member.joinedAt | date }}</clr-dg-cell>
+        </clr-dg-row>
+        <clr-dg-row>
+          <clr-dg-cell>{{ 'REGISTRATION_DATE' | translate }}</clr-dg-cell>
+          <clr-dg-cell>{{member.creationTimestamp | date }}</clr-dg-cell>
+        </clr-dg-row>
+        <clr-dg-row>
+          <clr-dg-cell>{{ 'ROLES' | translate }}</clr-dg-cell>
+          <clr-dg-cell>
+            <ng-container *ngFor="let role of sortRoles(member.roles); index as i">
+              {{role.name}}{{ member.roles[i + 1] !== undefined ? ',' : '' }}
+            </ng-container>
+          </clr-dg-cell>
+        </clr-dg-row>
+
+      </clr-datagrid>
+    </clr-dg-detail-body>
+  </clr-dg-detail>
+</clr-datagrid>
+<clr-modal #kickMemberModal>
+  <h3 class="modal-title">{{ 'REMOVE_MEMBER_FROM_GUILD' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #kickForm="ngForm">
+      <p [innerHTML]="'REMOVE_MEMBER_CONFIRMATION' | translate:member"></p>
+      <clr-input-container *ngIf="!model.noReason">
+        <label>{{ 'REASON' | translate }}</label>
+        <input clrInput placeholder="{{ 'REASON_OF_REMOVAL' | translate }}" name="input" [required]="!model.noReason" [(ngModel)]="model.reason" [maxLength]="512" />
+      </clr-input-container>
+      <clr-checkbox-container>
+        <clr-checkbox-wrapper>
+          <input type="checkbox" clrCheckbox name="noReason" [(ngModel)]="model.noReason" />
+          <label>{{ 'REMOVE_WITHOUT_PROVIDING_REASON' | translate }}</label>
+        </clr-checkbox-wrapper>
+        <clr-checkbox-wrapper>
+          <input type="checkbox" clrCheckbox name="notify" [(ngModel)]="model.notify" />
+          <label>{{ 'NOTIFY_MEMBER' | translate }}</label>
+        </clr-checkbox-wrapper>
+        <clr-checkbox-wrapper *ngIf="model.notify">
+          <input type="checkbox" clrCheckbox name="anonymous" [(ngModel)]="model.anonymous" />
+          <label>{{ 'NOTIFY_MEMBER_ANONYMOUSLY' | translate }}</label>
+        </clr-checkbox-wrapper>
+        <clr-checkbox-wrapper *ngIf="model.notify && !model.noReason">
+          <input type="checkbox" clrCheckbox name="includeReason" [(ngModel)]="model.includeReason" />
+          <label>{{ 'INCLUDE_REASON' | translate }}</label>
+        </clr-checkbox-wrapper>
+      </clr-checkbox-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="kickMemberModal.close(); kickForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger" [disabled]="!kickForm.valid"
+            (click)="removeMember(kickMemberModal, member.memberId, index); kickForm.reset()">{{ 'REMOVE' | translate }}</button>
+  </div>
+</clr-modal>
+<clr-modal #banMemberModal>
+  <h3 class="modal-title">{{ 'BAN_MEMBER_FROM_GUILD' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #banForm="ngForm">
+      <p [innerHTML]="'BAN_MEMBER_CONFIRMATION' | translate:member"></p>
+      <clr-input-container *ngIf="!model.noReason">
+        <label>{{ 'REASON' | translate }}</label>
+        <input clrInput placeholder="{{ 'REASON_OF_BAN' | translate }}" name="input" [required]="!model.noReason" [(ngModel)]="model.reason" [maxLength]="512" />
+      </clr-input-container>
+      <clr-checkbox-container>
+        <clr-checkbox-wrapper>
+          <input type="checkbox" clrCheckbox name="noReason" [(ngModel)]="model.noReason" />
+          <label>{{ 'BAN_WITHOUT_PROVIDING_REASON' | translate }}</label>
+        </clr-checkbox-wrapper>
+        <clr-checkbox-wrapper>
+          <input type="checkbox" clrCheckbox name="notify" [(ngModel)]="model.notify" />
+          <label>{{ 'NOTIFY_MEMBER' | translate }}</label>
+        </clr-checkbox-wrapper>
+        <clr-checkbox-wrapper *ngIf="model.notify">
+          <input type="checkbox" clrCheckbox name="anonymous" [(ngModel)]="model.anonymous" />
+          <label>{{ 'NOTIFY_MEMBER_ANONYMOUSLY' | translate }}</label>
+        </clr-checkbox-wrapper>
+        <clr-checkbox-wrapper *ngIf="model.notify && !model.noReason">
+          <input type="checkbox" clrCheckbox name="includeReason" [(ngModel)]="model.includeReason" />
+          <label>{{ 'INCLUDE_REASON' | translate }}</label>
+        </clr-checkbox-wrapper>
+      </clr-checkbox-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="banMemberModal.close(); banForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger" [disabled]="!banForm.valid"
+            (click)="banMember(banMemberModal, member.memberId, index); banForm.reset()">{{ 'BAN' | translate }}</button>
+  </div>
+</clr-modal>
+<clr-modal #editMemberModal [clrModalSize]="'lg'">
+  <h3 class="modal-title">{{ 'EDIT_MEMBER' | translate }}</h3>
+  <div class="modal-body">
+    <ng-container *ngIf="isLoading">
+      <div class="page-center">
+        <span class="spinner spinner-inline">
+          {{ 'LOADING' | translate }}
+        </span>
+        <span>
+          {{ 'LOADING' | translate }}
+        </span>
+      </div>
+    </ng-container>
+    <form clrForm #editMemberForm="ngForm">
+      <ng-container *ngIf="!isLoading">
+        <clr-alert [clrAlertType]="subAlertType" *ngIf="showSubAlert" (clrAlertClosedChange)="onCloseSubAlert()">
+          <clr-alert-item>
+            <span class="alert-text">
+                {{subAlertType === 'success' ? 'Operation was successful' : 'Operation was unsuccessful'}}
+            </span>
+          </clr-alert-item>
+        </clr-alert>
+        <clr-alert [clrAlertType]="'warning'" *ngIf="model.isOwner" (clrAlertClosedChange)="onCloseSubAlert()">
+          <clr-alert-item>
+            <span class="alert-text">
+                {{ 'GUILD_OWNER_DISPLAY_NAME_IMMUTABLE' | translate }}
+            </span>
+          </clr-alert-item>
+        </clr-alert>
+        <clr-tabs>
+          <clr-tab>
+            <button clrTabLink id="general">{{ 'GENERAL' | translate }}</button>
+            <clr-tab-content id="content1" *clrIfActive="true">
+
+                <clr-input-container>
+                  <label>ID</label>
+                  <input clrInput placeholder="ID" name="id" disabled [(ngModel)]="model.memberId" />
+                </clr-input-container>
+                <clr-input-container>
+                  <label>{{ 'USERNAME' | translate }}</label>
+                  <input clrInput placeholder="Username" name="username" disabled [(ngModel)]="model.username" />
+                </clr-input-container>
+                <clr-input-container>
+                  <label>{{ 'DISPLAY_NAME' | translate }}</label>
+                  <input clrInput placeholder="Display name" name="name" [(ngModel)]="model.displayName" [disabled]="model.isOwner" [minlength]="2" [maxLength]="32" />
+                </clr-input-container>
+                <clr-checkbox-container>
+                  <clr-checkbox-wrapper>
+                    <input type="checkbox" clrCheckbox value="option2" name="isDeafened" [(ngModel)]="model.isDeafened" />
+                    <label>{{ 'DEAFENED' | translate }}</label>
+                  </clr-checkbox-wrapper>
+                  <clr-checkbox-wrapper>
+                    <input type="checkbox" clrCheckbox value="option1" name="isMuted" [(ngModel)]="model.isMuted" />
+                    <label>{{ 'MUTED' | translate }}</label>
+                  </clr-checkbox-wrapper>
+                </clr-checkbox-container>
+            </clr-tab-content>
+          </clr-tab>
+          <clr-tab>
+            <button clrTabLink id="roles">{{ 'ROLES' | translate }}</button>
+            <clr-tab-content *clrIfActive>
+              <button class="btn btn-outline-primary btn-sm">{{ 'ADD_NEW' | translate }}</button>
+              <button class="btn btn-outline-danger btn-sm" [disabled]="rolesToDelete.length < 1" (click)="revokeRoles(model.memberId)">{{ 'REMOVE_SELECTED' | translate}}</button>
+              <clr-datagrid [(clrDgSelected)]="rolesToDelete" *ngIf="model.hasOwnProperty('roles')">
+                <clr-dg-column>{{ 'NAME' | translate }}</clr-dg-column>
+
+                <clr-dg-row *clrDgItems="let role of model.roles; index as i" [clrDgItem]="role">
+                  <clr-dg-cell>{{role.name}}</clr-dg-cell>
+                </clr-dg-row>
+
+                <clr-dg-footer>{{model.roles.length}} {{ 'ROLES_DATAGRID' | translate }}</clr-dg-footer>
+              </clr-datagrid>
+            </clr-tab-content>
+          </clr-tab>
+        </clr-tabs>
+      </ng-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="editMemberModal.close();">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="editMember()" [disabled]="!editMemberForm.valid || !editMemberForm.dirty">
+      {{ 'EDIT' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isBannedUsersModalOpen" clrModalSize="lg">
+  <h3 class="modal-title">
+    {{ 'BANNED_MEMBERS' | translate }}
+  </h3>
+  <div class="modal-body">
+    <span class="spinner page-center" *ngIf="isLoadingBanned">
+      {{ 'LOADING' | translate }}
+    </span>
+    <form clrForm #bannedMembersForm>
+      <clr-datagrid [(clrDgSelected)]="selectedMembersToUnban" *ngIf="!isLoadingBanned && isBannedInitialized">
+        <clr-dg-action-bar>
+          <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-danger-outline" [disabled]="selectedMembersToUnban.length < 1" (click)="handleUnbanMembers()">
+              {{ 'UNBAN' | translate }}
+            </button>
+          </div>
+        </clr-dg-action-bar>
+
+        <clr-dg-column>{{ 'USERNAME' | translate }}</clr-dg-column>
+        <clr-dg-column>{{ 'DISCRIMINATOR' | translate }}</clr-dg-column>
+
+        <clr-dg-placeholder>{{ 'NO_BANNED_MEMBERS_FOUND' | translate }}</clr-dg-placeholder>
+
+        <clr-dg-row *ngFor="let ban of bans; index as i" [clrDgItem]="ban">
+          <clr-dg-cell>{{ban.user.username}}</clr-dg-cell>
+          <clr-dg-cell>{{ban.user.discriminator}}</clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>{{bans.length}} {{ 'BANNED_MEMBERS_DATAGRID' | translate }}</clr-dg-footer>
+      </clr-datagrid>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isBannedUsersModalOpen = false">
+      {{ 'CANCEL' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary" (click)="handleSubmitUnbans(); isBannedUsersModalOpen = false"
+            [clrLoading]="btnState" [disabled]="!bannedMembersForm.valid || !bannedMembersForm.dirty">
+      {{ 'SAVE' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isTempBannedUsersModalOpen" clrModalSize="lg">
+  <h3 class="modal-title">
+    {{ 'TEMPORARILY_BANNED_MEMBERS' | translate }}
+  </h3>
+  <div class="modal-body">
+    <span class="spinner page-center" *ngIf="isLoadingTempBanned">
+      {{ 'LOADING' | translate }}
+    </span>
+    <form clrForm #tempbannedMembersForm>
+      <clr-datagrid [(clrDgSelected)]="selectedMembersToTempUnban" *ngIf="!isLoadingTempBanned && isTempBannedInitialized">
+        <clr-dg-action-bar>
+          <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-danger-outline" [disabled]="selectedMembersToTempUnban.length < 1" (click)="handleTempUnbanMembers()">
+              {{ 'UNBAN' | translate }}
+            </button>
+          </div>
+        </clr-dg-action-bar>
+
+        <clr-dg-column>{{ 'USERNAME' | translate }}</clr-dg-column>
+        <clr-dg-column>{{ 'DISCRIMINATOR' | translate }}</clr-dg-column>
+        <clr-dg-column>{{ 'EXPIRES_AT' | translate }}</clr-dg-column>
+
+        <clr-dg-placeholder>{{ 'NO_BANNED_MEMBERS_FOUND' | translate }}</clr-dg-placeholder>
+
+        <clr-dg-row *ngFor="let ban of tempBans; index as i" [clrDgItem]="ban">
+          <clr-dg-cell>{{ban.username}}</clr-dg-cell>
+          <clr-dg-cell>{{ban.discriminator}}</clr-dg-cell>
+          <clr-dg-cell>{{ban.expiresAt | date}}</clr-dg-cell>
+        </clr-dg-row>
+
+        <clr-dg-footer>{{tempBans.length}} {{ 'BANNED_MEMBERS_DATAGRID' | translate }}</clr-dg-footer>
+      </clr-datagrid>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isTempBannedUsersModalOpen = false">
+      {{ 'CANCEL' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary" (click)="handleSubmitTempUnbans(); isTempBannedUsersModalOpen = false"
+            [clrLoading]="tempUnbanBtnState" [disabled]="!tempbanMemberForm.valid || !tempbannedMembersForm.dirty">
+      {{ 'SAVE' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal #tempbanMemberModal>
+  <h3 class="modal-title">{{ 'TEMPORARY_BAN' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #tempbanMemberForm="ngForm">
+      <p [innerHTML]="'TEMPORARY_BAN_CONFIRMATION' | translate:member"></p>
+      <clr-date-container>
+        <label>{{ 'TEMPORARY_BAN_UNTIL' | translate }}</label>
+        <input type="date" clrDate name="date" [(ngModel)]="tempbanUntil" [min]="currentDate">
+      </clr-date-container>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="tempbanMemberModal.close(); tempbanMemberForm.reset()">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger" [clrLoading]="tempbanMemberBtnState" [disabled]="!tempbanMemberForm.valid || !tempbanMemberForm.dirty"
+            (click)="handleTempbanMember(tempbanMemberModal, member, index); tempbanMemberForm.reset()">{{ 'SUSPEND' | translate }}</button>
+  </div>
+</clr-modal>
