@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/v1/logs")]
     public class LogsController : ControllerBase
     {

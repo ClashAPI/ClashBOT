@@ -6,6 +6,8 @@ import {CustomCommandsPlugin} from '../../_models/custom-commands-plugin';
 import {AutoModPlugin} from '../../_models/auto-mod-plugin';
 import {Alert} from '../../_models/alert';
 import {ClashAPIPlugin} from '../../_models/clashapi-plugin';
+import {TwitchPlugin} from '../../_models/twitch-plugin';
+import {ScheduledMessagesPlugin} from '../../_models/scheduled-messages-plugin';
 
 @Component({
   selector: 'app-dashboard-plugins',
@@ -22,6 +24,10 @@ export class DashboardPluginsComponent implements OnInit {
   customCommandsPlugin: CustomCommandsPlugin = {};
   // @ts-ignore
   clashAPIPlugin: ClashAPIPlugin = {};
+  // @ts-ignore
+  twitchPlugin: TwitchPlugin = {};
+  // @ts-ignore
+  scheduledMessagesPlugin: ScheduledMessagesPlugin = {};
   alerts: Alert[] = [];
 
   constructor(private http: HttpClient) {
@@ -38,9 +44,16 @@ export class DashboardPluginsComponent implements OnInit {
         this.isLoading = false;
       }))
       .subscribe((data) => {
+        // @ts-ignore
         this.autoModPlugin = data.autoModPlugin;
+        // @ts-ignore
         this.customCommandsPlugin = data.customCommandPlugin;
+        // @ts-ignore
         this.clashAPIPlugin = data.clashAPIPlugin;
+        // @ts-ignore
+        this.twitchPlugin = data.twitchPlugin;
+        // @ts-ignore
+        this.scheduledMessagesPlugin = data.scheduledMessagesPlugin;
       }, err => {
         if (err.status === 429) {
           this.alerts.push({

@@ -105,5 +105,23 @@ namespace backend.Controllers
 
             return BadRequest();
         }
+
+        [HttpGet("patch-notes")]
+        public async Task<IActionResult> GetUnseenPatchNotes()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var patchNotes = await _userService.GetUnseenPatchNotesAsync(user.Id);
+
+            return Ok(patchNotes);
+        }
+
+        [HttpPost("patch-notes/{patchNoteId}")]
+        public async Task<IActionResult> MarkPatchNoteAsSeen([FromRoute] Guid patchNoteId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            await _userService.MarkPatchNoteAsSeenAsync(patchNoteId, user.Id);
+
+            return Ok();
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace backend.Models
         public User()
         {
             CreatedAt = DateTime.Now;
+            SeenPatchNotes = new List<SeenPatchNote>();
         }
 
         [Key]
@@ -22,5 +23,6 @@ namespace backend.Models
         // [Encrypted]
         // public string AccessToken { get; set; }
         public DateTime CreatedAt { get; set; }
+        public virtual IList<SeenPatchNote> SeenPatchNotes { get; set; }
     }
 }

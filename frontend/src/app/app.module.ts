@@ -37,6 +37,11 @@ import {ServerComponent} from './server/server.component';
 import { DashboardPluginsClashapiComponent } from './dashboard/dashboard-plugins/dashboard-plugins-clashapi/dashboard-plugins-clashapi.component';
 import { LoginCallbackComponent } from './login/login-callback/login-callback.component';
 import {environment} from '../environments/environment.prod';
+import { DashboardPluginsTwitchComponent } from './dashboard/dashboard-plugins/dashboard-plugins-twitch/dashboard-plugins-twitch.component';
+import { DashboardPluginsScheduledMessagesComponent } from './dashboard/dashboard-plugins/dashboard-plugins-scheduled-messages/dashboard-plugins-scheduled-messages.component';
+import { AdminPatchesComponent } from './admin/admin-patches/admin-patches.component';
+import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
+import {SafePipe} from './_pipes/safe-pipe';
 
 Sentry.init({
   dsn: environment.sentryDsn,
@@ -89,6 +94,10 @@ export function tokenGetter() {
     ServerComponent,
     DashboardPluginsClashapiComponent,
     LoginCallbackComponent,
+    DashboardPluginsTwitchComponent,
+    DashboardPluginsScheduledMessagesComponent,
+    AdminPatchesComponent,
+    SafePipe,
   ],
   imports: [
     RouterModule.forRoot(routes),
@@ -114,7 +123,8 @@ export function tokenGetter() {
       }
     }),
     ReactiveFormsModule,
-    SafePipeModule
+    SafePipeModule,
+    CKEditorModule
   ],
   providers: [
     AuthService,

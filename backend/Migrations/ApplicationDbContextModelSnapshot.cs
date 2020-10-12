@@ -15,7 +15,7 @@ namespace backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.7")
+                .HasAnnotation("ProductVersion", "3.1.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -620,6 +620,12 @@ namespace backend.Migrations
                     b.Property<Guid?>("NotificationsPluginId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("ScheduledMessagesPluginId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TwitchPluginId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AutoModPluginId");
@@ -629,6 +635,10 @@ namespace backend.Migrations
                     b.HasIndex("CustomCommandPluginId");
 
                     b.HasIndex("NotificationsPluginId");
+
+                    b.HasIndex("ScheduledMessagesPluginId");
+
+                    b.HasIndex("TwitchPluginId");
 
                     b.ToTable("Guilds");
                 });
@@ -732,6 +742,34 @@ namespace backend.Migrations
                     b.ToTable("NotificationsPlugin");
                 });
 
+            modelBuilder.Entity("backend.Models.PatchNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CommitId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("PatchNotes");
+                });
+
             modelBuilder.Entity("backend.Models.RepeatedTextSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -797,11 +835,52 @@ namespace backend.Migrations
                     b.Property<string>("Message")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("ScheduledMessagesPluginId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("GuildId");
 
+                    b.HasIndex("ScheduledMessagesPluginId");
+
                     b.ToTable("ScheduledMessage");
+                });
+
+            modelBuilder.Entity("backend.Models.ScheduledMessagesPlugin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScheduledMessagesPlugin");
+                });
+
+            modelBuilder.Entity("backend.Models.SeenPatchNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PatchNoteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SeenPatchNote");
                 });
 
             modelBuilder.Entity("backend.Models.ServerInvitesSettings", b =>
@@ -851,6 +930,33 @@ namespace backend.Migrations
                     b.ToTable("TemporaryBan");
                 });
 
+            modelBuilder.Entity("backend.Models.TwitchChannelSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChannelId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("GuildId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StreamerId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("TwitchPluginId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId");
+
+                    b.HasIndex("TwitchPluginId");
+
+                    b.ToTable("TwitchChannelSubscription");
+                });
+
             modelBuilder.Entity("backend.Models.TwitchNotification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -871,6 +977,23 @@ namespace backend.Migrations
                     b.HasIndex("NotificationsPluginId");
 
                     b.ToTable("TwitchNotification");
+                });
+
+            modelBuilder.Entity("backend.Models.TwitchPlugin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TwitchPlugin");
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -1268,6 +1391,14 @@ namespace backend.Migrations
                     b.HasOne("backend.Models.NotificationsPlugin", "NotificationsPlugin")
                         .WithMany()
                         .HasForeignKey("NotificationsPluginId");
+
+                    b.HasOne("backend.Models.ScheduledMessagesPlugin", "ScheduledMessagesPlugin")
+                        .WithMany()
+                        .HasForeignKey("ScheduledMessagesPluginId");
+
+                    b.HasOne("backend.Models.TwitchPlugin", "TwitchPlugin")
+                        .WithMany()
+                        .HasForeignKey("TwitchPluginId");
                 });
 
             modelBuilder.Entity("backend.Models.Infraction", b =>
@@ -1291,6 +1422,13 @@ namespace backend.Migrations
                         .HasForeignKey("AutoModPluginId");
                 });
 
+            modelBuilder.Entity("backend.Models.PatchNote", b =>
+                {
+                    b.HasOne("backend.Models.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId");
+                });
+
             modelBuilder.Entity("backend.Models.RepeatedTextSettings", b =>
                 {
                     b.HasOne("backend.Models.Guild", "Guild")
@@ -1301,8 +1439,19 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.ScheduledMessage", b =>
                 {
                     b.HasOne("backend.Models.Guild", "Guild")
-                        .WithMany("ScheduledMessages")
+                        .WithMany()
                         .HasForeignKey("GuildId");
+
+                    b.HasOne("backend.Models.ScheduledMessagesPlugin", null)
+                        .WithMany("ScheduledMessages")
+                        .HasForeignKey("ScheduledMessagesPluginId");
+                });
+
+            modelBuilder.Entity("backend.Models.SeenPatchNote", b =>
+                {
+                    b.HasOne("backend.Models.User", null)
+                        .WithMany("SeenPatchNotes")
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("backend.Models.ServerInvitesSettings", b =>
@@ -1317,6 +1466,17 @@ namespace backend.Migrations
                     b.HasOne("backend.Models.Guild", null)
                         .WithMany("TemporaryBans")
                         .HasForeignKey("GuildId");
+                });
+
+            modelBuilder.Entity("backend.Models.TwitchChannelSubscription", b =>
+                {
+                    b.HasOne("backend.Models.Guild", "Guild")
+                        .WithMany()
+                        .HasForeignKey("GuildId");
+
+                    b.HasOne("backend.Models.TwitchPlugin", null)
+                        .WithMany("TwitchChannelSubscriptions")
+                        .HasForeignKey("TwitchPluginId");
                 });
 
             modelBuilder.Entity("backend.Models.TwitchNotification", b =>

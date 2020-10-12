@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualBasic.CompilerServices;
+using TwitchLib.Api;
 using Command = backend.Models.Command;
 using DiscordChannel = DSharpPlus.Entities.DiscordChannel;
 using DiscordRole = DSharpPlus.Entities.DiscordRole;
@@ -28,6 +29,69 @@ namespace backend.Services
             _bot = serviceProvider.GetRequiredService<Bot>();
             _bot.Client.MessageCreated += OnMessageCreated;
             _bot.Client.GuildMemberAdded += OnGuildMemberAdded;
+        }
+
+        public async Task<bool> SendTwitchNotification(string streamerId, TwitchNotificationType twitchNotificationType)
+        {
+            try
+            {
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
+                    var guilds = await guildService.GetAllAsync();
+                    var relatedGuilds = guilds
+                        .Where(g => g.TwitchPlugin.TwitchChannelSubscriptions.Select(s => s.StreamerId == streamerId).Any())
+                        .ToList();
+
+                    if (relatedGuilds.Count > 0)
+                    {
+                        var twitchService = scope.ServiceProvider.GetRequiredService<ITwitchService>();
+                        
+                        foreach (var guild in relatedGuilds)
+                        {
+                            if (guild.TwitchPlugin.IsEnabled)
+                            {
+                                var discordGuild = await _bot.Client
+                                    .ShardClients.Values.First()
+                                    .GetGuildAsync(ulong.Parse(guild.GuildId));
+                                var subscription = guild.TwitchPlugin.TwitchChannelSubscriptions
+                                    .FirstOrDefault(s => s.StreamerId == streamerId);
+                                var channel = discordGuild.GetChannel(ulong.Parse(subscription.ChannelId));
+                                var twitchChannel = await twitchService.GetUserByIdAsync(streamerId);
+
+                                switch (twitchNotificationType)
+                                {
+                                    case TwitchNotificationType.StreamUp:
+                                        await channel.SendMessageAsync(embed: new DiscordEmbedBuilder
+                                        {
+                                            Color = DiscordColor.Green,
+                                            Title = $"{twitchChannel.DisplayName}'s stream is up",
+                                            Description = $"Channel {twitchChannel.DisplayName} is now live!",
+                                            Footer = new DiscordEmbedBuilder.EmbedFooter {Text = "ClashBOT - Twitch plugin", IconUrl = ""},
+                                        });
+                                        break;
+                                    case TwitchNotificationType.StreamDown:
+                                        await channel.SendMessageAsync(embed: new DiscordEmbedBuilder
+                                        {
+                                            Color = DiscordColor.Red,
+                                            Title = $"{twitchChannel.DisplayName}'s stream is down",
+                                            Description = $"Channel {twitchChannel.DisplayName} went offline!",
+                                            Footer = new DiscordEmbedBuilder.EmbedFooter {Text = "ClashBOT - Twitch plugin", IconUrl = ""},
+                                        });
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
 
         private async Task<bool> CheckPermissionsAsync(DiscordGuild guild, User user)
@@ -472,7 +536,7 @@ namespace backend.Services
                         var words = e.Message.Content.Split(' ');
 
                         // Check if the command is enabled
-                        if (true)
+                        if (guild.AutoModPlugin.ModeratorCommands.First(c => c.CommandCall == "ban").IsEnabled)
                         {
                             if (words[0] == "!ban")
                             {
@@ -481,7 +545,7 @@ namespace backend.Services
                         }
 
                         // Check if the command is enabled
-                        if (true)
+                        if (guild.AutoModPlugin.ModeratorCommands.First(c => c.CommandCall == "kick").IsEnabled)
                         {
                             if (words[0] == "!kick")
                             {
@@ -490,7 +554,7 @@ namespace backend.Services
                         }
 
                         // Check if the command is enabled
-                        if (true)
+                        if (guild.AutoModPlugin.ModeratorCommands.First(c => c.CommandCall == "tempban").IsEnabled)
                         {
                             if (words[0] == "!tempban")
                             {
@@ -499,7 +563,7 @@ namespace backend.Services
                         }
 
                         // Check if the command is enabled
-                        if (true)
+                        if (guild.AutoModPlugin.ModeratorCommands.First(c => c.CommandCall == "clear").IsEnabled)
                         {
                             if (words[0] == "!clear")
                             {
@@ -540,7 +604,7 @@ namespace backend.Services
                         */
 
                         // If Clash Royale plugin | command is enabled
-                        if (true)
+                        if (guild.ClashAPIPlugin.IsEnabled)
                         {
                             var clashRoyaleService = scope.ServiceProvider.GetRequiredService<IClashRoyaleService>();
                             var baseUrl = "https://clashapi.net/";
@@ -678,7 +742,9 @@ namespace backend.Services
 
         public int? GetPing()
         {
-            return _bot.Client.Ping;
+            return _bot.Client
+                .ShardClients.Values.First()
+                .Ping;
         }
 
         public bool GetIfBotOnline()
@@ -688,7 +754,9 @@ namespace backend.Services
 
         public async Task<IReadOnlyList<DiscordChannel>> GetChannelsAsync(string guildId)
         {
-            var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            var guild = await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
 
             return await guild.GetChannelsAsync();
         }
@@ -703,7 +771,9 @@ namespace backend.Services
                     var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                     var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                    var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildDto.Id));
+                    var guild = await _bot.Client
+                        .ShardClients.Values.First()
+                        .GetGuildAsync(ulong.Parse(guildDto.Id));
                     var initiator =
                         await userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
                     var member = await GetMemberAsync(guild.Id.ToString(), ulong.Parse(initiator.UserId));
@@ -761,19 +831,25 @@ namespace backend.Services
 
         public async Task<DiscordGuild> GetGuildAsync(string guildId)
         {
-            return await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            return await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
         }
 
         public async Task<DiscordMember> GetMemberAsync(string guildId, ulong userId)
         {
-            var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            var guild = await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
 
             return await guild.GetMemberAsync(userId);
         }
 
         public async Task<List<DiscordRole>> GetMemberRolesAsync(string guildId, ulong userId)
         {
-            var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            var guild = await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
             var member = await GetMemberAsync(guildId, userId);
 
             return member.Roles.ToList();
@@ -781,14 +857,18 @@ namespace backend.Services
 
         public async Task<IReadOnlyList<DiscordMember>> GetMembersAsync(string guildId)
         {
-            var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            var guild = await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
 
             return await guild.GetAllMembersAsync();
         }
 
         public async Task<IReadOnlyList<DiscordMember>> GetMembersInRoleAsync(string guildId, ulong roleId)
         {
-            var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            var guild = await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
             var role = guild.GetRole(roleId);
 
             return guild.Members.Where(m => m.Roles.Contains(role)).ToList();
@@ -796,14 +876,18 @@ namespace backend.Services
 
         public async Task<DiscordRole> GetRoleAsync(string guildId, ulong roleId)
         {
-            var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            var guild = await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
 
             return guild.GetRole(roleId);
         }
 
         public async Task<IReadOnlyList<DiscordRole>> GetRolesAsync(string guildId)
         {
-            var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+            var guild = await _bot.Client
+                .ShardClients.Values.First()
+                .GetGuildAsync(ulong.Parse(guildId));
 
             return guild.Roles.ToList();
         }
@@ -816,7 +900,9 @@ namespace backend.Services
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
                 var role = guild.Roles.First(r => r.Id == roleId);
                 var member = guild.Members.First(m => m.Id == userId);
                 var initiator =
@@ -857,7 +943,9 @@ namespace backend.Services
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
                 var member = guild.Members.First(m => m.Id == userId);
                 var initiator =
                     await userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
@@ -901,7 +989,9 @@ namespace backend.Services
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
                 var member = guild.Members.First(m => m.Id == userId);
                 var role = guild.Roles.First(r => r.Id == roleId);
                 var initiatorMember = await GetMemberAsync(guildId, ulong.Parse(initiator.UserId));
@@ -936,7 +1026,9 @@ namespace backend.Services
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
                 var discordMember = guild.Members.First(m => m.Id == userId);
                 var initiator = await userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
                 var initiatorMember = await GetMemberAsync(guildId, ulong.Parse(initiator.UserId));
@@ -988,7 +1080,9 @@ namespace backend.Services
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
                 var discordMember = guild.Members.First(m => m.Id == userId);
                 var initiator =
                     await userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
@@ -1044,7 +1138,9 @@ namespace backend.Services
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
                 var initiatorMember = await GetMemberAsync(guildId, ulong.Parse(user.UserId));
 
                 var dbGuild = await guildService.GetByGuildIdAsync(guildId);
@@ -1078,26 +1174,34 @@ namespace backend.Services
 
         public async Task<bool> ConnectAsync()
         {
-            var connections = await _bot.Client.GetConnectionsAsync();
+            var connections = await _bot.Client
+                .ShardClients.Values.First()
+                .GetConnectionsAsync();
 
             if (connections.Count > 0)
             {
                 return false;
             }
 
-            await _bot.Client.ConnectAsync();
+            await _bot.Client
+                .ShardClients.Values.First()
+                .ConnectAsync();
             return true;
         }
 
         public async Task<bool> DisconnectAsync()
         {
-            await _bot.Client.DisconnectAsync();
+            await _bot.Client
+                .ShardClients.Values.First()
+                .DisconnectAsync();
             return true;
         }
 
         public async Task<bool> ReconnectAsync()
         {
-            await _bot.Client.ReconnectAsync();
+            await _bot.Client
+                .ShardClients.Values.First()
+                .ReconnectAsync();
             return true;
         }
 
@@ -1109,7 +1213,9 @@ namespace backend.Services
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                 var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
                 var memberId = ulong.Parse(editMemberDto.MemberId);
                 var member = await guild.GetMemberAsync(memberId);
                 var initiator
@@ -1203,17 +1309,23 @@ namespace backend.Services
 
         public bool GetIfBotIsMemberOfGuild(string guildId)
         {
-            return _bot.Client.Guilds.Keys.Contains(ulong.Parse(guildId));
+            return _bot.Client
+                .ShardClients.Values.First()
+                .Guilds.Keys.Contains(ulong.Parse(guildId));
         }
 
         public int? GetBotPing()
         {
-            return _bot.Client.Ping;
+            return _bot.Client
+                .ShardClients.Values.First()
+                .Ping;
         }
 
         public async Task<IReadOnlyList<DiscordVoiceRegion>> GetRegionsAsync()
         {
-            return await _bot.Client.ListRegionsAsync();
+            return await _bot.Client
+                .ShardClients.Values.First()
+                .ListRegionsAsync();
         }
 
         public async Task<IReadOnlyList<DiscordBan>> GetBansAsync(string guildId, User user)
@@ -1223,7 +1335,9 @@ namespace backend.Services
                 var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
                 var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
 
-                var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                var guild = await _bot.Client
+                    .ShardClients.Values.First()
+                    .GetGuildAsync(ulong.Parse(guildId));
 
                 var initiatorMember = await guild.GetMemberAsync(ulong.Parse(user.UserId));
 
@@ -1249,7 +1363,9 @@ namespace backend.Services
                     var guildService = scope.ServiceProvider.GetRequiredService<IGuildService>();
                     var logService = scope.ServiceProvider.GetRequiredService<ILogService>();
 
-                    var guild = await _bot.Client.GetGuildAsync(ulong.Parse(guildId));
+                    var guild = await _bot.Client
+                        .ShardClients.Values.First()
+                        .GetGuildAsync(ulong.Parse(guildId));
                     var bans = await GetBansAsync(guildId, user);
 
                     var initiatorMember = await guild.GetMemberAsync(ulong.Parse(user.UserId));

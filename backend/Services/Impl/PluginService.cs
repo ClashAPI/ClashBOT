@@ -825,6 +825,116 @@ namespace backend.Services
                 return false;
             }
         }
+        
+        public async Task<bool> UpdateScheduledMessagesPluginAsync(string guildId, ScheduledMessagesPluginDto scheduledMessagesPluginDto, User user)
+        {
+            try
+            {
+                var guild = await _guildService.GetByGuildIdAsync(guildId);
+                var discordGuild = await _botService.GetGuildAsync(guildId);
+                var member = await discordGuild.GetMemberAsync(ulong.Parse(user.UserId));
+
+                var hasPermission = await CheckIfHasPermissionAsync(member, discordGuild, guild);
+
+                if (scheduledMessagesPluginDto.IsEnabled != guild.ScheduledMessagesPlugin.IsEnabled)
+                {
+                    guild.ScheduledMessagesPlugin.IsEnabled = scheduledMessagesPluginDto.IsEnabled;
+                }
+
+                if (!hasPermission)
+                {
+                    return false;
+                }
+
+                var initiator =
+                    await _userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
+
+                // TODO: log
+                
+                await _pluginRepository.SaveAllAsync();
+                
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateTwitchPluginAsync(string guildId, TwitchPluginDto twitchPluginDto, User user)
+        {
+            try
+            {
+                var guild = await _guildService.GetByGuildIdAsync(guildId);
+                var discordGuild = await _botService.GetGuildAsync(guildId);
+                var member = await discordGuild.GetMemberAsync(ulong.Parse(user.UserId));
+
+                var hasPermission = await CheckIfHasPermissionAsync(member, discordGuild, guild);
+
+                guild.TwitchPlugin.TwitchChannelSubscriptions = twitchPluginDto.TwitchChannelSubscriptions;
+                
+                if (twitchPluginDto.IsEnabled != guild.TwitchPlugin.IsEnabled)
+                {
+                    guild.TwitchPlugin.IsEnabled = twitchPluginDto.IsEnabled;
+                }
+
+                if (!hasPermission)
+                {
+                    return false;
+                }
+
+                var initiator =
+                    await _userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
+
+                // TODO: log
+                
+                await _pluginRepository.SaveAllAsync();
+                
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
+        
+        public async Task<bool> UpdateClashAPIPluginAsync(string guildId, ClashAPIPluginDto clashAPIPluginDto, User user)
+        {
+            try
+            {
+                var guild = await _guildService.GetByGuildIdAsync(guildId);
+                var discordGuild = await _botService.GetGuildAsync(guildId);
+                var member = await discordGuild.GetMemberAsync(ulong.Parse(user.UserId));
+
+                var hasPermission = await CheckIfHasPermissionAsync(member, discordGuild, guild);
+
+                if (clashAPIPluginDto.IsEnabled != guild.ClashAPIPlugin.IsEnabled)
+                {
+                    guild.ClashAPIPlugin.IsEnabled = clashAPIPluginDto.IsEnabled;
+                }
+
+                if (!hasPermission)
+                {
+                    return false;
+                }
+
+                var initiator =
+                    await _userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
+
+                // TODO: log
+                
+                await _pluginRepository.SaveAllAsync();
+                
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
 
         public async Task<bool> TriggerCustomCommandsPluginStateAsync(string guildId, User user)
         {
@@ -843,8 +953,7 @@ namespace backend.Services
 
                 var initiator =
                     await _userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
-
-
+                
                 guild.CustomCommandPlugin.IsEnabled = !guild.CustomCommandPlugin.IsEnabled;
 
                 var stateString = guild.CustomCommandPlugin.IsEnabled ? "ENABLED" : "DISABLED";
@@ -983,6 +1092,7 @@ namespace backend.Services
             }
 
             await _pluginRepository.SaveAllAsync();
+            
             return true;
         }
     }

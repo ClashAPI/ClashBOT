@@ -29,3 +29,12 @@
     </div>
   </div>
 </ng-container>
+<clr-modal [(clrModalOpen)]="isPatchNotesModalOpen" [clrModalSize]="'lg'" #patchNotesModal *ngIf="patchNotesLoaded">
+  <h3 class="modal-title">{{ 'WHAT_IS_NEW' | translate }} {{ activePatchNote.commitId ? '(' + activePatchNote.commitId + ')' : '' }}</h3>
+  <div class="modal-body">
+    <div [innerHTML]="activePatchNote.content | SafePipe"></div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="handleViewNextUnseenPatchNote()">{{ unseenPatchNotes.length === 1 ? 'OK' : 'NEXT' | translate }}</button>
+  </div>
+</clr-modal>

@@ -54,8 +54,11 @@
       </div>
     </div>
     <div class="clr-col-md-4">
-      <div class="card">
+      <div class="card clickable" [routerLink]="['scheduled-messages']">
         <div class="card-block">
+          <div class="progress top" [class]="scheduledMessagesPlugin.isEnabled ? 'success' : 'danger'">
+            <progress value="100" max="100"></progress>
+          </div>
           <div class="card-title">
             {{ 'TIMERS' | translate }}
             <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
@@ -72,6 +75,25 @@
     <div class="clr-col-md-4">
       <div class="card">
         <div class="card-block">
+          <div class="card-title">
+            {{ 'MUSIC' | translate }}
+            <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
+              <clr-icon shape="shield-check" class="is-solid is-success" size="18"></clr-icon>
+              <span class="tooltip-content">{{ 'OFFICIAL_PLUGIN' | translate }}</span>
+            </a>
+          </div>
+          <div class="card-text">
+            {{ 'MUSIC_PLUGIN_DESCRIPTION' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clr-col-md-4">
+      <div class="card clickable" [routerLink]="['twitch']">
+        <div class="card-block">
+          <div class="progress top" [class]="twitchPlugin.isEnabled ? 'success' : 'danger'">
+            <progress value="100" max="100"></progress>
+          </div>
           <div class="card-title">
             Twitch
             <a role="tooltip" aria-haspopup="true" class="tooltip tooltip-xs tooltip-bottom-right">
