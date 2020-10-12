@@ -24,6 +24,7 @@ namespace backend.Data
 
         public DbSet<Guild> Guilds { get; set; }
         public DbSet<LogEntry> LogEntries { get; set; }
+        public DbSet<PatchNote> PatchNotes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

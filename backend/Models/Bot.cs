@@ -1,17 +1,21 @@
-﻿using DSharpPlus;
+﻿using System.Collections.ObjectModel;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
 using Newtonsoft.Json;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSharpPlus.VoiceNext;
 
 namespace backend.Models
 {
     public class Bot
     {
         // public DiscordShardedClient Client { get; set; }
-        public DiscordClient Client { get; set; }
+        public DiscordShardedClient Client { get; set; }
+        public static VoiceNextClient VoiceClient;
         public CommandsNextModule Commands { get; private set; }
 
         public Bot()
@@ -39,7 +43,7 @@ namespace backend.Models
             };
 
             // Client = new DiscordShardedClient(config);
-            Client = new DiscordClient(config);
+            Client = new DiscordShardedClient(config);
 
             Client.Ready += OnClientReady;
 
@@ -51,11 +55,17 @@ namespace backend.Models
                 EnableDefaultHelp = true
             };
 
-            // Client.UseCommandsNext(commandsConfig);
-            Commands = Client.UseCommandsNext(commandsConfig);
+            Client.UseCommandsNext(commandsConfig);
+            // Commands = Client.UseCommandsNext(commandsConfig);
 
-            // await Client.StartAsync();
-            await Client.ConnectAsync();
+            var voiceConfig = new VoiceNextConfiguration
+            {
+                EnableIncoming = false
+            };
+            
+            VoiceClient = Client.UseVoiceNext(voiceConfig).Values.First();
+            await Client.StartAsync();
+            // await Client.ConnectAsync();
             // await Task.Delay(-1);
         }
 

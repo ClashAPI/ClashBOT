@@ -17,8 +17,9 @@ namespace backend.Models
         public virtual CustomCommandPlugin CustomCommandPlugin { get; set; }
         public virtual NotificationsPlugin NotificationsPlugin { get; set; }
         public virtual List<TemporaryBan> TemporaryBans { get; set; }
-        public virtual List<ScheduledMessage> ScheduledMessages { get; set; }
         public virtual List<Infraction> Infractions { get; set; }
+        public virtual ScheduledMessagesPlugin ScheduledMessagesPlugin { get; set; }
+        public virtual TwitchPlugin TwitchPlugin { get; set; }
 
         public Guild()
         {
@@ -154,6 +155,15 @@ namespace backend.Models
             };
 
             NotificationsPlugin = new NotificationsPlugin
+            {
+                IsEnabled = false
+            };
+            ScheduledMessagesPlugin = new ScheduledMessagesPlugin
+            {
+                IsEnabled = false,
+                ScheduledMessages = new List<ScheduledMessage>()
+            };
+            TwitchPlugin = new TwitchPlugin
             {
                 IsEnabled = false
             };

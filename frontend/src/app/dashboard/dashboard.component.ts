@@ -8,6 +8,7 @@ import {CustomCommandsPlugin} from '../_models/custom-commands-plugin';
 import {AutoModPlugin} from '../_models/auto-mod-plugin';
 import {Guild} from '../_models/guild';
 import {Alert} from '../_models/alert';
+import {PatchNote} from '../_models/patch-note';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,6 +27,11 @@ export class DashboardComponent implements OnInit {
   // @ts-ignore
   guild: any = {};
   alerts: Alert[] = [];
+  unseenPatchNotes: PatchNote[] = [];
+  // @ts-ignore
+  activePatchNote: PatchNote = {};
+  isPatchNotesModalOpen = false;
+  patchNotesLoaded = false;
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
@@ -33,6 +39,28 @@ export class DashboardComponent implements OnInit {
     this.selectedGuildId = localStorage.getItem('selectedGuildId');
     this.getGuild();
     this.getGuildPlugins();
+    this.getUnseenPatchNotes();
+  }
+  getUnseenPatchNotes() {
+    this.http.get(this.baseUrl + 'users/patch-notes')
+      .pipe()
+      .subscribe(data => {
+        // @ts-ignore
+        this.unseenPatchNotes = data;
+        this.activePatchNote = this.unseenPatchNotes[this.unseenPatchNotes.length - 1];
+        this.patchNotesLoaded = true;
+        this.isPatchNotesModalOpen = true;
+      });
+  }
+  handleViewNextUnseenPatchNote() {
+    this.http.post(this.baseUrl + 'users/patch-notes/' + this.activePatchNote.id, {})
+      .subscribe();
+    this.unseenPatchNotes.pop();
+    if (this.unseenPatchNotes.length !== 0) {
+      this.activePatchNote = this.unseenPatchNotes[this.unseenPatchNotes.length - 1];
+    } else {
+      this.isPatchNotesModalOpen = false;
+    }
   }
   getGuild() {
     this.isLoading = true;

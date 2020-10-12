@@ -21,9 +21,12 @@ using Pekka.ClashRoyaleApi.Client.Contracts;
 using Pekka.Core;
 using Pekka.Core.Contracts;
 using System;
+using System.IO;
 using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text;
+using backend.Repositories.Impl;
+using Microsoft.Extensions.FileProviders;
 
 namespace backend
 {
@@ -124,12 +127,14 @@ namespace backend
             services.AddTransient<ILogRepository, LogRepository>();
             services.AddTransient<IGuildRepository, GuildRepository>();
             services.AddTransient<IPluginRepository, PluginRepository>();
+            services.AddTransient<IPatchNoteRepository, PatchNoteRepository>();
 
             // Services
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<ILogService, LogService>();
             services.AddTransient<IGuildService, GuildService>();
             services.AddTransient<IPluginService, PluginService>();
+            services.AddTransient<IPatchNoteService, PatchNoteService>();
             services.AddTransient<IPlayerClient, PlayerClient>();
             services.AddTransient<IClanClient, ClanClient>();
             services.AddTransient<IClashRoyaleService, ClashRoyaleService>();
@@ -137,6 +142,7 @@ namespace backend
             // Bot dependencies
             services.AddAutoMapper(typeof(Repository).Assembly);
             services.AddSingleton<Bot>();
+            services.AddSingleton<ITwitchService, TwitchService>();
             services.AddSingleton<IBotService, BotService>();
             services.AddHttpClient<IDiscordDataService, DiscordDataService>();
             services.AddHttpClient<IRestApiClient, RestApiClient>((provider, client) =>
@@ -164,6 +170,13 @@ namespace backend
             }
 
             app.UseHttpsRedirection();
+            
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(env.ContentRootPath, "Static")),
+                RequestPath = "/Static"
+            });
 
             app.UseRouting();
 

@@ -42,5 +42,6 @@ namespace backend.Services
         Task<IReadOnlyList<DiscordVoiceRegion>> GetRegionsAsync();
         Task<IReadOnlyList<DiscordBan>> GetBansAsync(string guildId, User user);
         Task<bool> UnbanMembersAsync(string guildId, UnbanMembersDto unbanMembersDto, User user);
+        Task<bool> SendTwitchNotification(string streamerId, TwitchNotificationType twitchNotificationType);
     }
 }

@@ -1,0 +1,84 @@
+<ng-container *ngFor="let alert of alerts; index as i">
+  <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+    <clr-alert-item>
+          <span class="alert-text">
+            {{ alert.message | translate }}
+          </span>
+    </clr-alert-item>
+  </clr-alert>
+</ng-container>
+<button class="btn btn-sm btn-outline-secondary" (click)="prepareCreatePatchNote()">{{ 'CREATE_PATCH_NOTE' | translate }}</button>
+<clr-datagrid [clrDgLoading]="isLoading">
+  <clr-dg-placeholder>{{ 'NO_PATCH_NOTES_FOUND' | translate }}</clr-dg-placeholder>
+  <clr-dg-footer>
+    <clr-dg-pagination #pagination [clrDgPageSize]="10">
+      <clr-dg-page-size [clrPageSizeOptions]="[10,20,50,100]">{{ 'PATCH_NOTES_PER_PAGE' | translate }}</clr-dg-page-size>
+      {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}}
+      {{ 'OF_DATAGRID' | translate }} {{pagination.totalItems}} {{ 'PATCH_NOTES_OF_DATAGRID' | translate }}
+    </clr-dg-pagination>
+  </clr-dg-footer>
+
+  <clr-dg-column [clrDgField]="'id'">ID</clr-dg-column>
+  <clr-dg-column [clrDgField]="'title'">{{ 'TITLE' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'date'">{{ 'DATE' | translate }}</clr-dg-column>
+
+  <clr-dg-row *clrDgItems="let patchNote of patchNotes, index as i" [clrDgItem]="patchNote">
+    <clr-dg-action-overflow>
+      <button class="action-item" (click)="prepareEditPatchNote(i)">{{ 'EDIT' | translate }}</button>
+      <button class="action-item" (click)="deletePatchNote(patchNote.id, i)">{{ 'DELETE' | translate }}</button>
+    </clr-dg-action-overflow>
+    <clr-dg-cell>{{patchNote.id}}</clr-dg-cell>
+    <clr-dg-cell>{{patchNote.title}}</clr-dg-cell>
+    <clr-dg-cell>{{patchNote.createdAt | date:'medium'}}</clr-dg-cell>
+  </clr-dg-row>
+</clr-datagrid>
+<clr-modal [(clrModalOpen)]="isCreateModalOpen" [clrModalSize]="'lg'" #createPatchNoteModal>
+  <h3 class="modal-title">{{patchNoteModel.title || 'NEW_PATCH_NOTE' | translate }}</h3>
+  <div class="modal-body">
+    <form clrForm #createPatchNoteForm="ngForm">
+      <clr-input-container>
+        <label>{{ 'TITLE' | translate }}</label>
+        <input clrInput name="title" minlength="3" required [(ngModel)]="patchNoteModel.title" />
+      </clr-input-container>
+      <clr-input-container>
+        <label>{{ 'COMMIT_ID' | translate }}</label>
+        <input clrInput name="commitId" minlength="2" [(ngModel)]="patchNoteModel.commitId" />
+      </clr-input-container>
+      <br>
+      <ckeditor name="content" [editor]="editor" [config]="editorConfig"
+                (ready)="onReady($event)" [(ngModel)]="patchNoteModel.content" required></ckeditor>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isCreateModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="addPatchNote(createPatchNoteModal)"
+            [clrLoading]="modalButton" [disabled]="createPatchNoteForm.invalid || !createPatchNoteForm.dirty">
+      {{ 'CREATE' | translate }}
+    </button>
+  </div>
+</clr-modal>
+<clr-modal [(clrModalOpen)]="isEditModalOpen" [clrModalSize]="'lg'" #editPatchNoteModal>
+  <h3 class="modal-title">{{patchNoteModel.title }}</h3>
+  <div class="modal-body">
+    <form clrForm #editPatchNoteForm="ngForm">
+      <clr-input-container>
+        <label>{{ 'TITLE' | translate }}</label>
+        <input clrInput name="title" minlength="3" required [(ngModel)]="patchNoteModel.title" />
+      </clr-input-container>
+      <clr-input-container>
+        <label>{{ 'COMMIT_ID' | translate }}</label>
+        <input clrInput name="commitId" minlength="2" [(ngModel)]="patchNoteModel.commitId" />
+      </clr-input-container>
+      <br>
+      <ckeditor name="content" [editor]="editor" [config]="editorConfig"
+                (ready)="onReady($event)" [(ngModel)]="patchNoteModel.content" required></ckeditor>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="isEditModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="editPatchNote(editPatchNoteModal)"
+            [clrLoading]="modalButton" [disabled]="editPatchNoteForm.invalid || !editPatchNoteForm.dirty">
+      {{ 'EDIT' | translate }}
+    </button>
+  </div>
+</clr-modal>

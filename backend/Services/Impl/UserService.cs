@@ -11,11 +11,13 @@ namespace backend.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ILogService _logService;
+        private readonly IPatchNoteService _patchNoteService;
 
-        public UserService(IUserRepository userRepository, ILogService logService)
+        public UserService(IUserRepository userRepository, ILogService logService, IPatchNoteService patchNoteService)
         {
             _userRepository = userRepository;
             _logService = logService;
+            _patchNoteService = patchNoteService;
         }
         public async Task<IList<User>> GetAllAsync()
         {
@@ -183,6 +185,39 @@ namespace backend.Services
         public async Task<User> AddAsync(User user)
         {
             return await _userRepository.AddAsync(user);
+        }
+
+        public async Task<IList<PatchNote>> GetUnseenPatchNotesAsync(Guid userId)
+        {
+            var user = await GetByIdAsync(userId);
+            var patchNotes = await _patchNoteService.GetAllAsync();
+            var relevantPatchNotes = patchNotes
+                .Where(p => !user.SeenPatchNotes.Select(a => a.PatchNoteId).ToList().Contains(p.Id)).ToList();
+            relevantPatchNotes = relevantPatchNotes.Where(p => p.CreatedAt > user.CreatedAt).ToList();
+
+            return relevantPatchNotes;
+        }
+
+        public async Task<bool> MarkPatchNoteAsSeenAsync(Guid patchNoteId, Guid userId)
+        {
+            try
+            {
+                var user = await GetByIdAsync(userId);
+
+                var seenPatchNote = new SeenPatchNote();
+                seenPatchNote.PatchNoteId = patchNoteId;
+
+                user.SeenPatchNotes.Add(seenPatchNote);
+
+                await _userRepository.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
     }
 }

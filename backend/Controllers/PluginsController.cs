@@ -29,7 +29,7 @@ namespace backend.Controllers
         {
             var guild = await _guildService.GetByGuildIdAsync(guildId);
 
-            return Ok(new { guild.AutoModPlugin, guild.CustomCommandPlugin, guild.ClashAPIPlugin });
+            return Ok(new { guild.AutoModPlugin, guild.CustomCommandPlugin, guild.ClashAPIPlugin, guild.TwitchPlugin, guild.ScheduledMessagesPlugin });
         }
 
         [HttpGet("mod")]
@@ -49,6 +49,76 @@ namespace backend.Controllers
                     words,
                     await _userManager.GetUserAsync(User)
                     );
+
+            return Ok();
+        }
+
+        [HttpGet("scheduledmessages")]
+        public async Task<IActionResult> GetScheduledMessagesPlugin([FromRoute] string guildId)
+        {
+            var guild = await _guildService.GetByGuildIdAsync(guildId);
+
+            return Ok(guild.ScheduledMessagesPlugin);
+        }
+        
+        [HttpPatch("scheduledmessages")]
+        public async Task<IActionResult> UpdateScheduledMessagesPlugin([FromRoute] string guildId,
+            [FromBody] ScheduledMessagesPluginDto scheduledMessagesPluginDto)
+        {
+            var result = await _pluginService.UpdateScheduledMessagesPluginAsync(guildId, scheduledMessagesPluginDto,
+                await _userManager.GetUserAsync(User));
+
+            if (!result)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
+        [HttpGet("twitch")]
+        public async Task<IActionResult> GetGuildTwitchPlugin([FromRoute] string guildId)
+        {
+            var guild = await _guildService.GetByGuildIdAsync(guildId);
+
+            return Ok(guild.TwitchPlugin);
+        }
+
+        [HttpPatch("twitch")]
+        public async Task<IActionResult> UpdateTwitchPlugin([FromRoute] string guildId,
+            [FromBody] TwitchPluginDto twitchPluginDto)
+        {
+            var result =
+                await _pluginService.UpdateTwitchPluginAsync(guildId, twitchPluginDto,
+                    await _userManager.GetUserAsync(User));
+
+            if (!result)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
+        [HttpGet("clashapi")]
+        public async Task<IActionResult> GetClashAPIPlugin([FromRoute] string guildId)
+        {
+            var guild = await _guildService.GetByGuildIdAsync(guildId);
+
+            return Ok(guild.ClashAPIPlugin);
+        }
+
+        [HttpPatch("clashapi")]
+        public async Task<IActionResult> UpdateClashAPIPlugin([FromRoute] string guildId,
+            [FromBody] ClashAPIPluginDto clashAPIPluginDto)
+        {
+            var result = await _pluginService.UpdateClashAPIPluginAsync(guildId, clashAPIPluginDto,
+                await _userManager.GetUserAsync(User));
+
+            if (!result)
+            {
+                return BadRequest();
+            }
 
             return Ok();
         }

@@ -19,6 +19,9 @@ import {AdminBotComponent} from './admin/admin-manage-bot/admin-bot.component';
 import {AdminUsersComponent} from './admin/admin-users/admin-users.component';
 import {DashboardPluginsClashapiComponent} from './dashboard/dashboard-plugins/dashboard-plugins-clashapi/dashboard-plugins-clashapi.component';
 import {LoginCallbackComponent} from './login/login-callback/login-callback.component';
+import {DashboardPluginsTwitchComponent} from './dashboard/dashboard-plugins/dashboard-plugins-twitch/dashboard-plugins-twitch.component';
+import {DashboardPluginsScheduledMessagesComponent} from './dashboard/dashboard-plugins/dashboard-plugins-scheduled-messages/dashboard-plugins-scheduled-messages.component';
+import {AdminPatchesComponent} from './admin/admin-patches/admin-patches.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -37,7 +40,9 @@ export const routes: Routes = [
       { path: 'dashboard/plugins', component: DashboardPluginsComponent },
       { path: 'dashboard/plugins/moderation', component: DashboardPluginsModerationComponent },
       { path: 'dashboard/plugins/commands', component: DashboardPluginsCustomCommandsComponent },
+      { path: 'dashboard/plugins/scheduled-messages', component: DashboardPluginsScheduledMessagesComponent },
       { path: 'dashboard/plugins/clashapi', component: DashboardPluginsClashapiComponent },
+      { path: 'dashboard/plugins/twitch', component: DashboardPluginsTwitchComponent },
       { path: 'server', component: ServerComponent },
       { path: 'server/guild', component: ServerGuildComponent },
       { path: 'server/members', component: ServerMembersComponent },
@@ -49,6 +54,7 @@ export const routes: Routes = [
       { path: 'admin/index', component: AdminComponent },
       { path: 'admin/bot', component: AdminBotComponent },
       { path: 'admin/users', component: AdminUsersComponent },
+      { path: 'admin/patches', component: AdminPatchesComponent }
     ]
   },
   { path: '**', redirectTo: '/dashboard', pathMatch: 'full' },

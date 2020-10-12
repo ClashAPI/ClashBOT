@@ -15,10 +15,12 @@ namespace backend.Controllers
     public class BotController : ControllerBase
     {
         private readonly IBotService _botService;
+        private readonly ITwitchService _twitchService;
 
-        public BotController(IBotService botService)
+        public BotController(IBotService botService, ITwitchService twitchService)
         {
             _botService = botService;
+            _twitchService = twitchService;
         }
 
         [HttpPost("connect")]
@@ -64,6 +66,14 @@ namespace backend.Controllers
         public IActionResult GetIfBotOnline()
         {
             return Ok(_botService.GetIfBotOnline());
+        }
+
+        [HttpGet("twitch")]
+        public IActionResult InjectTwitchService()
+        {
+            _twitchService.Init();
+            
+            return Ok();
         }
     }
 }

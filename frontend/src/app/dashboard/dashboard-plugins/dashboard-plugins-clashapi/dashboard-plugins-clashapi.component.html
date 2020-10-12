@@ -1,1 +1,32 @@
-<p>dashboard-plugins-clashapi works!</p>
+<ng-container *ngIf="isLoading">
+  <div class="page-center">
+    <span class="spinner">
+      {{ 'LOADING' | translate }}
+    </span>
+  </div>
+</ng-container>
+<ng-container *ngIf="!isLoading">
+  <div class="clr-col-md-12">
+    <ng-container *ngFor="let alert of alerts; index as i">
+      <clr-alert [clrAlertType]="alert.type" (clrAlertClosedChange)="onCloseAlert(i)">
+        <clr-alert-item>
+        <span class="alert-text">
+          {{ alert.message | translate }}
+        </span>
+        </clr-alert-item>
+      </clr-alert>
+    </ng-container>
+    <div class="clr-row clr-align-text-top">
+      <div class="clr-col">
+        <h2 style="margin-top: 0;">{{ 'CLASHAPI_PLUGIN' | translate }}</h2>
+      </div>
+      <div class="clr-col text-right">
+        <button class="btn {{this.clashAPIPlugin.isEnabled ? 'btn-danger' : 'btn-success'}}" (click)="triggerClashAPIPluginState()"
+                [clrLoading]="btnState">
+          {{ (this.clashAPIPlugin.isEnabled ? 'DISABLE' : 'ENABLE') | translate }}
+        </button>
+      </div>
+    </div>
+    <hr>
+  </div>
+</ng-container>
