@@ -836,14 +836,14 @@ namespace backend.Services
 
                 var hasPermission = await CheckIfHasPermissionAsync(member, discordGuild, guild);
 
-                if (scheduledMessagesPluginDto.IsEnabled != guild.ScheduledMessagesPlugin.IsEnabled)
-                {
-                    guild.ScheduledMessagesPlugin.IsEnabled = scheduledMessagesPluginDto.IsEnabled;
-                }
-
                 if (!hasPermission)
                 {
                     return false;
+                }
+                
+                if (scheduledMessagesPluginDto.IsEnabled != guild.ScheduledMessagesPlugin.IsEnabled)
+                {
+                    guild.ScheduledMessagesPlugin.IsEnabled = scheduledMessagesPluginDto.IsEnabled;
                 }
 
                 var initiator =
@@ -874,14 +874,14 @@ namespace backend.Services
 
                 guild.TwitchPlugin.TwitchChannelSubscriptions = twitchPluginDto.TwitchChannelSubscriptions;
                 
-                if (twitchPluginDto.IsEnabled != guild.TwitchPlugin.IsEnabled)
-                {
-                    guild.TwitchPlugin.IsEnabled = twitchPluginDto.IsEnabled;
-                }
-
                 if (!hasPermission)
                 {
                     return false;
+                }
+                
+                if (twitchPluginDto.IsEnabled != guild.TwitchPlugin.IsEnabled)
+                {
+                    guild.TwitchPlugin.IsEnabled = twitchPluginDto.IsEnabled;
                 }
 
                 var initiator =
@@ -910,14 +910,14 @@ namespace backend.Services
 
                 var hasPermission = await CheckIfHasPermissionAsync(member, discordGuild, guild);
 
-                if (clashAPIPluginDto.IsEnabled != guild.ClashAPIPlugin.IsEnabled)
-                {
-                    guild.ClashAPIPlugin.IsEnabled = clashAPIPluginDto.IsEnabled;
-                }
-
                 if (!hasPermission)
                 {
                     return false;
+                }
+                
+                if (clashAPIPluginDto.IsEnabled != guild.ClashAPIPlugin.IsEnabled)
+                {
+                    guild.ClashAPIPlugin.IsEnabled = clashAPIPluginDto.IsEnabled;
                 }
 
                 var initiator =
@@ -1094,6 +1094,48 @@ namespace backend.Services
             await _pluginRepository.SaveAllAsync();
             
             return true;
+        }
+
+        public async Task<bool> UpdateWelcomePluginAsync(string guildId, WelcomePluginDto welcomePluginDto, User user)
+        {
+            try
+            {
+                var guild = await _guildService.GetByGuildIdAsync(guildId);
+
+                var discordGuild = await _botService.GetGuildAsync(guildId);
+                var member = await discordGuild.GetMemberAsync(ulong.Parse(user.UserId));
+
+                var hasPermission = await CheckIfHasPermissionAsync(member, discordGuild, guild);
+
+                if (!hasPermission)
+                {
+                    return false;
+                }
+
+                var initiator =
+                    await _userService.GetByUsernameAndDiscriminatorAsync(user.UserName, user.Discriminator);
+
+                if (guild.WelcomePlugin.IsEnabled != welcomePluginDto.IsEnabled)
+                {
+                    guild.WelcomePlugin.IsEnabled = welcomePluginDto.IsEnabled;
+                }
+
+                guild.WelcomePlugin.WelcomeMessage = welcomePluginDto.WelcomeMessage;
+                guild.WelcomePlugin.PrivateWelcomeMessage = welcomePluginDto.PrivateWelcomeMessage;
+                guild.WelcomePlugin.RolesToGive = welcomePluginDto.RolesToGive;
+                guild.WelcomePlugin.LeaveMessage = welcomePluginDto.LeaveMessage;
+                
+                await _logService.AddAsync("CHANGED_WELCOME_PLUGIN_SETTINGS", ActionType.UPDATE, initiator, guildId);
+
+                await _pluginRepository.SaveAllAsync();
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
     }
 }

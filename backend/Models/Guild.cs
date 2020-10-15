@@ -20,6 +20,7 @@ namespace backend.Models
         public virtual List<Infraction> Infractions { get; set; }
         public virtual ScheduledMessagesPlugin ScheduledMessagesPlugin { get; set; }
         public virtual TwitchPlugin TwitchPlugin { get; set; }
+        public virtual WelcomePlugin WelcomePlugin { get; set; }
 
         public Guild()
         {
@@ -164,6 +165,10 @@ namespace backend.Models
                 ScheduledMessages = new List<ScheduledMessage>()
             };
             TwitchPlugin = new TwitchPlugin
+            {
+                IsEnabled = false
+            };
+            WelcomePlugin = new WelcomePlugin
             {
                 IsEnabled = false
             };

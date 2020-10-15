@@ -29,7 +29,8 @@ namespace backend.Controllers
         {
             var guild = await _guildService.GetByGuildIdAsync(guildId);
 
-            return Ok(new { guild.AutoModPlugin, guild.CustomCommandPlugin, guild.ClashAPIPlugin, guild.TwitchPlugin, guild.ScheduledMessagesPlugin });
+            return Ok(new { guild.AutoModPlugin, guild.CustomCommandPlugin, guild.ClashAPIPlugin, 
+                guild.TwitchPlugin, guild.ScheduledMessagesPlugin, guild.WelcomePlugin });
         }
 
         [HttpGet("mod")]
@@ -91,6 +92,27 @@ namespace backend.Controllers
             var result =
                 await _pluginService.UpdateTwitchPluginAsync(guildId, twitchPluginDto,
                     await _userManager.GetUserAsync(User));
+
+            if (!result)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
+        [HttpGet("welcome")]
+        public async Task<IActionResult> GetWelcomePlugin([FromRoute] string guildId)
+        {
+            var guild = await _guildService.GetByGuildIdAsync(guildId);
+
+            return Ok(guild.WelcomePlugin);
+        }
+
+        [HttpPatch("welcome")]
+        public async Task<IActionResult> UpdateWelcomePlugin([FromRoute] string guildId, [FromBody] WelcomePluginDto welcomePluginDto)
+        {
+            var result = await _pluginService.UpdateWelcomePluginAsync(guildId, welcomePluginDto, await _userManager.GetUserAsync(User));
 
             if (!result)
             {
