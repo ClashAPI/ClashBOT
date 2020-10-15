@@ -1,6 +1,5 @@
 import {Routes} from '@angular/router';
 import {LoginComponent} from './login/login.component';
-import {LoginProcessComponent} from './login/login-process/login-process.component';
 import {AuthGuard} from './_guards/auth.guard';
 import {GuildSelectorComponent} from './guild-selector/guild-selector.component';
 import {DashboardComponent} from './dashboard/dashboard.component';
@@ -22,6 +21,7 @@ import {LoginCallbackComponent} from './login/login-callback/login-callback.comp
 import {DashboardPluginsTwitchComponent} from './dashboard/dashboard-plugins/dashboard-plugins-twitch/dashboard-plugins-twitch.component';
 import {DashboardPluginsScheduledMessagesComponent} from './dashboard/dashboard-plugins/dashboard-plugins-scheduled-messages/dashboard-plugins-scheduled-messages.component';
 import {AdminPatchesComponent} from './admin/admin-patches/admin-patches.component';
+import {DashboardPluginsWelcomeComponent} from './dashboard/dashboard-plugins/dashboard-plugins-welcome/dashboard-plugins-welcome.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -43,6 +43,7 @@ export const routes: Routes = [
       { path: 'dashboard/plugins/scheduled-messages', component: DashboardPluginsScheduledMessagesComponent },
       { path: 'dashboard/plugins/clashapi', component: DashboardPluginsClashapiComponent },
       { path: 'dashboard/plugins/twitch', component: DashboardPluginsTwitchComponent },
+      { path: 'dashboard/plugins/welcome', component: DashboardPluginsWelcomeComponent },
       { path: 'server', component: ServerComponent },
       { path: 'server/guild', component: ServerGuildComponent },
       { path: 'server/members', component: ServerMembersComponent },

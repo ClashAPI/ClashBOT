@@ -20,5 +20,7 @@ namespace backend.Services
 
         Task<bool> UpdateScheduledMessagesPluginAsync(string guildId,
             ScheduledMessagesPluginDto scheduledMessagesPluginDto, User user);
+
+        Task<bool> UpdateWelcomePluginAsync(string guildId, WelcomePluginDto welcomePluginDto, User user);
     }
 }

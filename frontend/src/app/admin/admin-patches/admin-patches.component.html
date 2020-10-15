@@ -20,6 +20,7 @@
 
   <clr-dg-column [clrDgField]="'id'">ID</clr-dg-column>
   <clr-dg-column [clrDgField]="'title'">{{ 'TITLE' | translate }}</clr-dg-column>
+  <clr-dg-column [clrDgField]="'commitId'">{{ 'VERSION' | translate }}</clr-dg-column>
   <clr-dg-column [clrDgField]="'date'">{{ 'DATE' | translate }}</clr-dg-column>
 
   <clr-dg-row *clrDgItems="let patchNote of patchNotes, index as i" [clrDgItem]="patchNote">
@@ -29,6 +30,7 @@
     </clr-dg-action-overflow>
     <clr-dg-cell>{{patchNote.id}}</clr-dg-cell>
     <clr-dg-cell>{{patchNote.title}}</clr-dg-cell>
+    <clr-dg-cell>{{patchNote.commitId}}</clr-dg-cell>
     <clr-dg-cell>{{patchNote.createdAt | date:'medium'}}</clr-dg-cell>
   </clr-dg-row>
 </clr-datagrid>

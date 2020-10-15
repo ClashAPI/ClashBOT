@@ -42,6 +42,7 @@ import { DashboardPluginsScheduledMessagesComponent } from './dashboard/dashboar
 import { AdminPatchesComponent } from './admin/admin-patches/admin-patches.component';
 import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
 import {SafePipe} from './_pipes/safe-pipe';
+import { DashboardPluginsWelcomeComponent } from './dashboard/dashboard-plugins/dashboard-plugins-welcome/dashboard-plugins-welcome.component';
 
 Sentry.init({
   dsn: environment.sentryDsn,
@@ -98,6 +99,7 @@ export function tokenGetter() {
     DashboardPluginsScheduledMessagesComponent,
     AdminPatchesComponent,
     SafePipe,
+    DashboardPluginsWelcomeComponent
   ],
   imports: [
     RouterModule.forRoot(routes),

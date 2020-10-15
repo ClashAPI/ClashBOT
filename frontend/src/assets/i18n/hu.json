@@ -285,5 +285,9 @@
   "PATCH_NOTE_DELETED": "A naplóbejegyzés törlése sikeres",
   "PATCH_NOTE_UPDATED": "A naplóbejegyzés frissítése sikeres",
   "COMMIT_ID": "Commit ID / Verzió",
-  "COULD_NOT_UPDATE_PATCH_NOTE": "A naplóbejegyzés frissítése sikertelen"
+  "COULD_NOT_UPDATE_PATCH_NOTE": "A naplóbejegyzés frissítése sikertelen",
+  "VERSION": "Verzió",
+  "WELCOME_PLUGIN_TITLE": "Üdvözlés",
+  "WELCOME_PLUGIN_DESCRIPTION": "Üdvözöld szervered új tagjait",
+  "CHANGED_WELCOME_PLUGIN_SETTINGS": "Módosította az üdvözlő beépülő beállításait"
 }

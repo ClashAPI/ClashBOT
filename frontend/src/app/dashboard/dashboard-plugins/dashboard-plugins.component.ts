@@ -8,6 +8,7 @@ import {Alert} from '../../_models/alert';
 import {ClashAPIPlugin} from '../../_models/clashapi-plugin';
 import {TwitchPlugin} from '../../_models/twitch-plugin';
 import {ScheduledMessagesPlugin} from '../../_models/scheduled-messages-plugin';
+import {WelcomePlugin} from '../../_models/welcome-plugin';
 
 @Component({
   selector: 'app-dashboard-plugins',
@@ -28,6 +29,8 @@ export class DashboardPluginsComponent implements OnInit {
   twitchPlugin: TwitchPlugin = {};
   // @ts-ignore
   scheduledMessagesPlugin: ScheduledMessagesPlugin = {};
+  // @ts-ignore
+  welcomePlugin: WelcomePlugin = {};
   alerts: Alert[] = [];
 
   constructor(private http: HttpClient) {
@@ -54,6 +57,8 @@ export class DashboardPluginsComponent implements OnInit {
         this.twitchPlugin = data.twitchPlugin;
         // @ts-ignore
         this.scheduledMessagesPlugin = data.scheduledMessagesPlugin;
+        // @ts-ignore
+        this.welcomePlugin = data.welcomePlugin;
       }, err => {
         if (err.status === 429) {
           this.alerts.push({
