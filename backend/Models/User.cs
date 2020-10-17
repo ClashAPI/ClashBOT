@@ -12,6 +12,11 @@ namespace backend.Models
         {
             CreatedAt = DateTime.Now;
             SeenPatchNotes = new List<SeenPatchNote>();
+            AppPreferences = new AppPreferences
+            {
+                Theme = Theme.Dark,
+                Language = Language.EN
+            };
         }
 
         [Key]
@@ -24,5 +29,6 @@ namespace backend.Models
         // public string AccessToken { get; set; }
         public DateTime CreatedAt { get; set; }
         public virtual IList<SeenPatchNote> SeenPatchNotes { get; set; }
+        public virtual AppPreferences AppPreferences { get; set; }
     }
 }

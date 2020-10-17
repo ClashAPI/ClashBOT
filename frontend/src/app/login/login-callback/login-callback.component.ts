@@ -1,9 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {environment} from '../../../environments/environment';
 import {finalize} from 'rxjs/operators';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {AuthService} from '../../_services/auth.service';
+import {Theme} from '../../_models/theme';
+import {TranslateService} from '@ngx-translate/core';
+import {DOCUMENT} from '@angular/common';
+import {Language} from '../../_models/language';
 
 @Component({
   selector: 'app-login-callback',
@@ -18,7 +22,8 @@ export class LoginCallbackComponent implements OnInit {
   clientSecret = environment.clientSecret;
 
   constructor(private route: ActivatedRoute, private http: HttpClient,
-              private authService: AuthService, private router: Router) {
+              private authService: AuthService, private router: Router,
+              private translate: TranslateService, @Inject(DOCUMENT) private document) {
     this.route.queryParams.subscribe(params => {
       this.code = params.code;
       console.log(this.code);
@@ -53,6 +58,14 @@ export class LoginCallbackComponent implements OnInit {
             this.authService.decodedToken = this.authService.jwtHelper.decodeToken(this.apiResponse.token);
             localStorage.setItem('user', JSON.stringify(this.apiResponse.user));
             this.authService.currentUser = this.authService.jwtHelper.decodeToken(JSON.stringify(this.apiResponse.currentUser));
+            localStorage.setItem('language', JSON.stringify(this.apiResponse.preferences.language));
+            this.translate.use(Language[localStorage.getItem('language')].toLowerCase());
+            localStorage.setItem('theme', JSON.stringify(this.apiResponse.preferences.theme));
+            if (localStorage.getItem('theme') === Theme.LIGHT.toString()) {
+              this.document.getElementById('global-theme').setAttribute('href', 'assets/css/clr-ui.min.css');
+            } else if (localStorage.getItem('theme') === Theme.DARK.toString()) {
+              this.document.getElementById('global-theme').setAttribute('href', 'assets/css/clr-ui-dark.min.css');
+            }
             this.router.navigate(['/dashboard/']).then();
           }, err => {
             if (err.reason === 'banned') {

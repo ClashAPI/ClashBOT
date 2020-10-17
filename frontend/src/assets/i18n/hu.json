@@ -289,5 +289,8 @@
   "VERSION": "Verzió",
   "WELCOME_PLUGIN_TITLE": "Üdvözlés",
   "WELCOME_PLUGIN_DESCRIPTION": "Üdvözöld szervered új tagjait",
-  "CHANGED_WELCOME_PLUGIN_SETTINGS": "Módosította az üdvözlő beépülő beállításait"
+  "CHANGED_WELCOME_PLUGIN_SETTINGS": "Módosította az üdvözlő beépülő beállításait",
+  "THEME": "Kinézet",
+  "DARK_THEME": "Sötét",
+  "LIGHT_THEME": "Világos"
 }

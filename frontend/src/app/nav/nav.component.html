@@ -47,7 +47,7 @@
           <clr-icon shape="caret down"></clr-icon>
         </button>
         <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
-          <a clrDropdownItem (click)="isLangChangeModalOpen=true">{{ 'PREFERENCES' | translate }}</a>
+          <a clrDropdownItem (click)="isPreferencesModalOpen=true">{{ 'PREFERENCES' | translate }}</a>
           <a style="color: #f55047;" clrDropdownItem (click)="logout()">{{ 'LOG_OUT' | translate }}</a>
         </clr-dropdown-menu>
       </clr-dropdown>
@@ -99,17 +99,24 @@
     </ng-container>
   </ul>
 </nav>
-<clr-modal [(clrModalOpen)]="isLangChangeModalOpen">
+<clr-modal [(clrModalOpen)]="isPreferencesModalOpen">
   <h3 class="modal-title">{{ 'PREFERENCES' | translate }}</h3>
   <div class="modal-body">
     <form clrForm #settingsForm="ngForm">
       <div class="clr-row">
         <div class="clr-col-md 12">
           <clr-select-container>
+            <label for="theme">{{ 'THEME' | translate }}</label>
+            <select #theme clrSelect name="theme" id="theme" required>
+              <option value="1" [selected]="currentTheme === '1'">{{ 'DARK_THEME' | translate }}</option>
+              <option value="0" [selected]="currentTheme === '0'">{{ 'LIGHT_THEME' | translate }}</option>
+            </select>
+          </clr-select-container>
+          <clr-select-container>
             <label for="language">{{ 'PREFERENCES_LANGUAGE' | translate }}</label>
             <select #languageCode clrSelect name="language" id="language" required>
-              <option value="en" [selected]="currentLangCode === 'en'">{{ 'ENGLISH' | translate }}</option>
-              <option value="hu" [selected]="currentLangCode === 'hu'">{{ 'HUNGARIAN' | translate }}</option>
+              <option value="1" [selected]="currentLanguage === '1'">{{ 'ENGLISH' | translate }}</option>
+              <option value="0" [selected]="currentLanguage === '0'">{{ 'HUNGARIAN' | translate }}</option>
             </select>
           </clr-select-container>
         </div>
@@ -117,9 +124,9 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-outline" (click)="isLangChangeModalOpen = false">{{ 'CANCEL' | translate }}</button>
-    <button type="button" class="btn btn-primary" (click)="changeLanguage(languageCode.value)"
-            [disabled]="settingsForm.invalid">
+    <button type="button" class="btn btn-outline" (click)="isPreferencesModalOpen = false">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-primary" (click)="processData(theme.value, languageCode.value)"
+            [disabled]="settingsForm.invalid" [clrLoading]="buttonState">
       Ok
     </button>
   </div>
