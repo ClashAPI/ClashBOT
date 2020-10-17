@@ -4,6 +4,8 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../../../environments/environment';
 import {finalize} from 'rxjs/operators';
 import {AuthService} from '../../_services/auth.service';
+import {Language} from '../../_models/language';
+import {Theme} from '../../_models/theme';
 
 @Component({
   selector: 'app-login-process',
@@ -25,7 +27,7 @@ export class LoginProcessComponent implements OnInit {
   // TODO: Notify the user if they got banned or suspended on the login screen
   login() {
     this.http.post(this.baseUrl + 'auth/login/' + this.accessToken, null)
-      .subscribe((data) => {
+      .subscribe(data => {
         this.response = data;
         localStorage.setItem('token', this.response.token);
         this.authService.decodedToken = this.authService.jwtHelper.decodeToken(this.response.token);

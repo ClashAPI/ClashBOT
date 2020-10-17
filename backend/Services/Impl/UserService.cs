@@ -219,5 +219,32 @@ namespace backend.Services
                 return false;
             }
         }
+
+        public async Task<bool> UpdatePreferencesAsync(AppPreferences appPreferences, Guid userId)
+        {
+            try
+            {
+                var user = await GetByIdAsync(userId);
+
+                if (user.AppPreferences.Language != appPreferences.Language)
+                {
+                    user.AppPreferences.Language = appPreferences.Language;
+                }
+
+                if (user.AppPreferences.Theme != appPreferences.Theme)
+                {
+                    user.AppPreferences.Theme = appPreferences.Theme;
+                }
+
+                await _userRepository.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
     }
 }

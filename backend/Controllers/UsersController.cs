@@ -123,5 +123,22 @@ namespace backend.Controllers
 
             return Ok();
         }
+
+        [HttpGet("preferences")]
+        public async Task<IActionResult> GetPreferences()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            return Ok(new { user.AppPreferences.Language, user.AppPreferences.Theme });
+        }
+
+        [HttpPatch("preferences")]
+        public async Task<IActionResult> UpdatePreferences([FromBody] AppPreferences appPreferences)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            await _userService.UpdatePreferencesAsync(appPreferences, user.Id);
+
+            return Ok();
+        }
     }
 }

@@ -85,7 +85,8 @@ namespace backend.Controllers
                 return Ok(new
                 {
                     token = await GenerateJwtTokenAsync(savedUser, loginDto.AccessToken),
-                    user = new { savedUser.Id, savedUser.UserName, savedUser.Email }
+                    user = new { savedUser.Id, savedUser.UserName, savedUser.Email },
+                    preferences = new { savedUser.AppPreferences.Language, savedUser.AppPreferences.Theme }
                 });
             }
             // User is already stored in our database
@@ -124,7 +125,12 @@ namespace backend.Controllers
                     return Unauthorized(new { reason = "banned", expiresAt = user.LockoutEnd });
                 }
 
-                return Ok(new { token = await GenerateJwtTokenAsync(user, loginDto.AccessToken), user = new { user.Id, user.UserName, user.Email } });
+                return Ok(new
+                    {
+                        token = await GenerateJwtTokenAsync(user, loginDto.AccessToken), 
+                        user = new { user.Id, user.UserName, user.Email },
+                        preferences = new { user.AppPreferences.Language, user.AppPreferences.Theme }
+                    });
             }
 
             // return Ok(await GenerateJwtTokenAsync(user));

@@ -285,8 +285,11 @@
   "PATCH_NOTE_UPDATED": "The patch note has been updated successfully",
   "COMMIT_ID": "Commit ID / Version",
   "COULD_NOT_UPDATE_PATCH_NOTE": "We couldn't update the patch note",
-  "VERSION": "Verzió",
+  "VERSION": "Version",
   "WELCOME_PLUGIN_TITLE": "Welcome",
   "WELCOME_PLUGIN_DESCRIPTION": "Welcome your new guild members",
-  "CHANGED_WELCOME_PLUGIN_SETTINGS": "Changed welcome plugin settings"
+  "CHANGED_WELCOME_PLUGIN_SETTINGS": "Changed welcome plugin settings",
+  "THEME": "Theme",
+  "DARK_THEME": "Dark",
+  "LIGHT_THEME": "Light"
 }

@@ -21,5 +21,6 @@ namespace backend.Services
         Task<User> AddAsync(User user);
         Task<IList<PatchNote>> GetUnseenPatchNotesAsync(Guid userId);
         Task<bool> MarkPatchNoteAsSeenAsync(Guid patchNoteId, Guid userId);
+        Task<bool> UpdatePreferencesAsync(AppPreferences appPreferences, Guid userId);
     }
 }
