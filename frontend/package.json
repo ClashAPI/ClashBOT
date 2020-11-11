@@ -35,7 +35,7 @@
     "@webcomponents/webcomponentsjs": "^2.4.4",
     "angular-froala-wysiwyg": "^3.2.2",
     "http-server": "^0.12.3",
-    "lite-server": "^2.5.4",
+    "lite-server": "^2.6.0",
     "lodash": "^4.17.20",
     "rxjs": "^6.6.2",
     "safe-pipe": "^1.0.3",
