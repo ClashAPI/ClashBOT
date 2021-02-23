@@ -36,7 +36,7 @@
     "angular-froala-wysiwyg": "^3.2.2",
     "http-server": "^0.12.3",
     "lite-server": "^2.5.4",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "rxjs": "^6.6.2",
     "safe-pipe": "^1.0.3",
     "tslib": "^2.0.1",
