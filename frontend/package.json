@@ -40,7 +40,7 @@
     "rxjs": "^6.6.2",
     "safe-pipe": "^1.0.3",
     "tslib": "^2.0.1",
-    "underscore": "^1.10.2",
+    "underscore": "^1.12.1",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {
